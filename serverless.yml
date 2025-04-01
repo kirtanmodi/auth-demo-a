@@ -1,0 +1,368 @@
+org: kirtanmodi
+service: auth-demo-c
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  stage: ${opt:stage, 'dev'}
+  region: us-east-1
+  timeout: 30
+  environment:
+    STAGE: ${self:provider.stage}
+    # Database connection info
+    DB_ENDPOINT: !GetAtt AuroraCluster.Endpoint.Address
+    DB_PORT: !GetAtt AuroraCluster.Endpoint.Port
+    DB_NAME: authcleardb
+    DB_SECRET_ARN: !Ref AuroraSecret
+  
+  # IAM permissions
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - secretsmanager:GetSecretValue
+          Resource: !Ref AuroraSecret
+        # VPC permissions
+        - Effect: Allow
+          Action:
+            - ec2:CreateNetworkInterface
+            - ec2:DescribeNetworkInterfaces
+            - ec2:DeleteNetworkInterface
+            - ec2:AssignPrivateIpAddresses
+            - ec2:UnassignPrivateIpAddresses
+          Resource: "*"
+  
+  # VPC configuration
+  vpc:
+    securityGroupIds:
+      - !Ref LambdaSecurityGroup
+    subnetIds:
+      - !Ref PrivateSubnetA
+      - !Ref PrivateSubnetB
+
+functions:
+  createMerchant:
+    handler: src/functions/merchants/create.handler
+    events:
+      - http:
+          path: /merchants
+          method: post
+          cors: true
+  
+  listMerchants:
+    handler: src/functions/merchants/list.handler
+    events:
+      - http:
+          path: /merchants
+          method: get
+          cors: true
+
+resources:
+  Resources:
+    # VPC configuration
+    MainVPC:
+      Type: AWS::EC2::VPC
+      Properties:
+        CidrBlock: 10.0.0.0/16
+        EnableDnsSupport: true
+        EnableDnsHostnames: true
+        Tags:
+          - Key: Name
+            Value: ${self:service}-${self:provider.stage}-vpc
+
+    # Internet Gateway
+    InternetGateway:
+      Type: AWS::EC2::InternetGateway
+      Properties:
+        Tags:
+          - Key: Name
+            Value: ${self:service}-${self:provider.stage}-igw
+
+    # Internet Gateway Attachment
+    InternetGatewayAttachment:
+      Type: AWS::EC2::VPCGatewayAttachment
+      Properties:
+        InternetGatewayId: !Ref InternetGateway
+        VpcId: !Ref MainVPC
+
+    # Public Subnet A
+    PublicSubnetA:
+      Type: AWS::EC2::Subnet
+      Properties:
+        VpcId: !Ref MainVPC
+        AvailabilityZone: ${self:provider.region}a
+        CidrBlock: 10.0.1.0/24
+        MapPublicIpOnLaunch: true
+        Tags:
+          - Key: Name
+            Value: ${self:service}-${self:provider.stage}-public-subnet-a
+
+    # Public Subnet B
+    PublicSubnetB:
+      Type: AWS::EC2::Subnet
+      Properties:
+        VpcId: !Ref MainVPC
+        AvailabilityZone: ${self:provider.region}b
+        CidrBlock: 10.0.2.0/24
+        MapPublicIpOnLaunch: true
+        Tags:
+          - Key: Name
+            Value: ${self:service}-${self:provider.stage}-public-subnet-b
+
+    # Private Subnet A
+    PrivateSubnetA:
+      Type: AWS::EC2::Subnet
+      Properties:
+        VpcId: !Ref MainVPC
+        AvailabilityZone: ${self:provider.region}a
+        CidrBlock: 10.0.3.0/24
+        Tags:
+          - Key: Name
+            Value: ${self:service}-${self:provider.stage}-private-subnet-a
+
+    # Private Subnet B
+    PrivateSubnetB:
+      Type: AWS::EC2::Subnet
+      Properties:
+        VpcId: !Ref MainVPC
+        AvailabilityZone: ${self:provider.region}b
+        CidrBlock: 10.0.4.0/24
+        Tags:
+          - Key: Name
+            Value: ${self:service}-${self:provider.stage}-private-subnet-b
+
+    # Route Tables
+    PublicRouteTable:
+      Type: AWS::EC2::RouteTable
+      Properties:
+        VpcId: !Ref MainVPC
+        Tags:
+          - Key: Name
+            Value: ${self:service}-${self:provider.stage}-public-rt
+
+    # Public Route
+    PublicRoute:
+      Type: AWS::EC2::Route
+      DependsOn: InternetGatewayAttachment
+      Properties:
+        RouteTableId: !Ref PublicRouteTable
+        DestinationCidrBlock: 0.0.0.0/0
+        GatewayId: !Ref InternetGateway
+
+    # Public Subnet A Route Table Association
+    PublicSubnetARouteTableAssociation:
+      Type: AWS::EC2::SubnetRouteTableAssociation
+      Properties:
+        RouteTableId: !Ref PublicRouteTable
+        SubnetId: !Ref PublicSubnetA
+
+    # Public Subnet B Route Table Association 
+    PublicSubnetBRouteTableAssociation:
+      Type: AWS::EC2::SubnetRouteTableAssociation
+      Properties:
+        RouteTableId: !Ref PublicRouteTable
+        SubnetId: !Ref PublicSubnetB
+
+    # NAT Gateway Elastic IP
+    NatGatewayEIP:
+      Type: AWS::EC2::EIP
+      DependsOn: InternetGatewayAttachment
+      Properties:
+        Domain: vpc
+
+    # NAT Gateway 
+    NatGateway:
+      Type: AWS::EC2::NatGateway
+      Properties:
+        AllocationId: !GetAtt NatGatewayEIP.AllocationId
+        SubnetId: !Ref PublicSubnetA
+        Tags:
+          - Key: Name
+            Value: ${self:service}-${self:provider.stage}-nat
+
+    # Private Route Table
+    PrivateRouteTable:
+      Type: AWS::EC2::RouteTable
+      Properties:
+        VpcId: !Ref MainVPC
+        Tags:
+          - Key: Name
+            Value: ${self:service}-${self:provider.stage}-private-rt
+
+    # Private Route
+    PrivateRoute:
+      Type: AWS::EC2::Route
+      Properties:
+        RouteTableId: !Ref PrivateRouteTable
+        DestinationCidrBlock: 0.0.0.0/0
+        NatGatewayId: !Ref NatGateway
+
+    # Private Subnet A Route Table Association
+    PrivateSubnetARouteTableAssociation:
+      Type: AWS::EC2::SubnetRouteTableAssociation
+      Properties:
+        RouteTableId: !Ref PrivateRouteTable
+        SubnetId: !Ref PrivateSubnetA
+
+    # Private Subnet B Route Table Association
+    PrivateSubnetBRouteTableAssociation:
+      Type: AWS::EC2::SubnetRouteTableAssociation
+      Properties:
+        RouteTableId: !Ref PrivateRouteTable
+        SubnetId: !Ref PrivateSubnetB
+
+    # Lambda Security Group
+    LambdaSecurityGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupDescription: Security group for Lambda functions
+        VpcId: !Ref MainVPC
+        SecurityGroupEgress:
+          - IpProtocol: -1
+            CidrIp: 0.0.0.0/0
+        Tags:
+          - Key: Name
+            Value: ${self:service}-${self:provider.stage}-lambda-sg
+            
+    # Aurora Security Group
+    AuroraSecurityGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupDescription: Security group for Aurora PostgreSQL cluster
+        VpcId: !Ref MainVPC
+        SecurityGroupIngress:
+          - IpProtocol: tcp
+            FromPort: 5432
+            ToPort: 5432
+            SourceSecurityGroupId: !Ref LambdaSecurityGroup
+          - IpProtocol: tcp
+            FromPort: 5432
+            ToPort: 5432
+            SourceSecurityGroupId: !Ref BastionSecurityGroup
+        Tags:
+          - Key: Name
+            Value: ${self:service}-${self:provider.stage}-aurora-sg
+    
+    # DB Subnet Group
+    DBSubnetGroup:
+      Type: AWS::RDS::DBSubnetGroup
+      Properties:
+        DBSubnetGroupDescription: Subnet group for Aurora database
+        SubnetIds:
+          - !Ref PrivateSubnetA
+          - !Ref PrivateSubnetB
+        Tags:
+          - Key: Name
+            Value: ${self:service}-${self:provider.stage}-db-subnet-group
+    
+    # Aurora Secret (for database credentials)
+    AuroraSecret:
+      Type: AWS::SecretsManager::Secret
+      Properties:
+        Name: ${self:service}/${self:provider.stage}/aurora-credentials
+        Description: Aurora database credentials
+        GenerateSecretString:
+          SecretStringTemplate: '{"username": "postgres"}'
+          GenerateStringKey: "password"
+          PasswordLength: 16
+          ExcludeCharacters: '"@/\'
+    
+    # Aurora PostgreSQL Cluster with Serverless v2
+    AuroraCluster:
+      Type: AWS::RDS::DBCluster
+      Properties:
+        Port: 5432
+        Engine: aurora-postgresql
+        EngineVersion: 13.9
+        DatabaseName: authcleardb
+        MasterUsername: !Join ['', ['{{resolve:secretsmanager:', !Ref AuroraSecret, ':SecretString:username}}' ]]
+        MasterUserPassword: !Join ['', ['{{resolve:secretsmanager:', !Ref AuroraSecret, ':SecretString:password}}' ]]
+        DBSubnetGroupName: !Ref DBSubnetGroup
+        VpcSecurityGroupIds:
+          - !Ref AuroraSecurityGroup
+        ServerlessV2ScalingConfiguration:
+          MinCapacity: 0.5
+          MaxCapacity: 4.0
+        BackupRetentionPeriod: 7
+        DeletionProtection: false
+        Tags:
+          - Key: Name
+            Value: ${self:service}-${self:provider.stage}-aurora-cluster
+    
+    # Aurora PostgreSQL Instance
+    AuroraDBInstance:
+      Type: AWS::RDS::DBInstance
+      Properties:
+        DBInstanceClass: db.serverless
+        Engine: aurora-postgresql
+        DBClusterIdentifier: !Ref AuroraCluster
+        PubliclyAccessible: false
+        DBInstanceIdentifier: ${self:service}-${self:provider.stage}-instance
+        Tags:
+          - Key: Name
+            Value: ${self:service}-${self:provider.stage}-aurora-instance
+
+    # Bastion Host -- comment if not needed
+    BastionHost:
+      Type: AWS::EC2::Instance
+      Properties:
+        InstanceType: t3.micro
+        SubnetId: !Ref PublicSubnetA
+        ImageId: ami-072e42fd77921edac  # Amazon Linux 2023 AMI (us-east-1)
+        SecurityGroupIds:
+          - !Ref BastionSecurityGroup
+        KeyName: aurora-bastion-key  # Create this in AWS Console first
+        Tags:
+          - Key: Name
+            Value: ${self:service}-${self:provider.stage}-bastion
+
+    BastionSecurityGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupDescription: Security group for bastion host
+        VpcId: !Ref MainVPC
+        SecurityGroupIngress:
+          - IpProtocol: tcp
+            FromPort: 22
+            ToPort: 22
+            CidrIp: 103.84.105.5/32  # Replace with your IP address
+        Tags:
+          - Key: Name
+            Value: ${self:service}-${self:provider.stage}-bastion-sg
+
+  Outputs:
+    VpcId:
+      Value: !Ref MainVPC
+      Export:
+        Name: ${self:service}-${self:provider.stage}-vpc-id
+
+    PrivateSubnetA:
+      Value: !Ref PrivateSubnetA
+      Export:
+        Name: ${self:service}-${self:provider.stage}-private-subnet-a
+
+    PrivateSubnetB:
+      Value: !Ref PrivateSubnetB
+      Export:
+        Name: ${self:service}-${self:provider.stage}-private-subnet-b
+        
+    AuroraSecretArn:
+      Value: !Ref AuroraSecret
+      Export:
+        Name: ${self:service}-${self:provider.stage}-db-secret-arn
+        
+    LambdaSecurityGroupId:
+      Value: !Ref LambdaSecurityGroup
+      Export:
+        Name: ${self:service}-${self:provider.stage}-lambda-sg-id
+
+plugins:
+  - serverless-iam-roles-per-function
+
+package:
+  individually: true
+  exclude:
+    - node_modules/**
+  include:
+    - src/**
