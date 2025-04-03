@@ -86,8 +86,8 @@ resources:
         InternetGatewayId: !Ref InternetGateway
         VpcId: !Ref MainVPC
 
-    # Public Subnet A
-    PublicSubnetA:
+    # Public Subnet (single)
+    PublicSubnet:
       Type: AWS::EC2::Subnet
       Properties:
         VpcId: !Ref MainVPC
@@ -96,21 +96,9 @@ resources:
         MapPublicIpOnLaunch: true
         Tags:
           - Key: Name
-            Value: ${self:service}-${self:provider.stage}-public-subnet-a
+            Value: ${self:service}-${self:provider.stage}-public-subnet
 
-    # Public Subnet B
-    PublicSubnetB:
-      Type: AWS::EC2::Subnet
-      Properties:
-        VpcId: !Ref MainVPC
-        AvailabilityZone: ${self:provider.region}b
-        CidrBlock: 10.0.2.0/24
-        MapPublicIpOnLaunch: true
-        Tags:
-          - Key: Name
-            Value: ${self:service}-${self:provider.stage}-public-subnet-b
-
-    # Private Subnet A
+    # Private Subnet A (Lambda)
     PrivateSubnetA:
       Type: AWS::EC2::Subnet
       Properties:
@@ -119,9 +107,9 @@ resources:
         CidrBlock: 10.0.3.0/24
         Tags:
           - Key: Name
-            Value: ${self:service}-${self:provider.stage}-private-subnet-a
+            Value: ${self:service}-${self:provider.stage}-lambda-subnet-a
 
-    # Private Subnet B
+    # Private Subnet B (Lambda)
     PrivateSubnetB:
       Type: AWS::EC2::Subnet
       Properties:
@@ -130,7 +118,29 @@ resources:
         CidrBlock: 10.0.4.0/24
         Tags:
           - Key: Name
-            Value: ${self:service}-${self:provider.stage}-private-subnet-b
+            Value: ${self:service}-${self:provider.stage}-lambda-subnet-b
+            
+    # Private Subnet C (Database)
+    DBPrivateSubnetA:
+      Type: AWS::EC2::Subnet
+      Properties:
+        VpcId: !Ref MainVPC
+        AvailabilityZone: ${self:provider.region}a
+        CidrBlock: 10.0.5.0/24
+        Tags:
+          - Key: Name
+            Value: ${self:service}-${self:provider.stage}-db-subnet-a
+            
+    # Private Subnet D (Database)
+    DBPrivateSubnetB:
+      Type: AWS::EC2::Subnet
+      Properties:
+        VpcId: !Ref MainVPC
+        AvailabilityZone: ${self:provider.region}b
+        CidrBlock: 10.0.6.0/24
+        Tags:
+          - Key: Name
+            Value: ${self:service}-${self:provider.stage}-db-subnet-b
 
     # Route Tables
     PublicRouteTable:
@@ -150,19 +160,12 @@ resources:
         DestinationCidrBlock: 0.0.0.0/0
         GatewayId: !Ref InternetGateway
 
-    # Public Subnet A Route Table Association
-    PublicSubnetARouteTableAssociation:
+    # Public Subnet Route Table Association
+    PublicSubnetRouteTableAssociation:
       Type: AWS::EC2::SubnetRouteTableAssociation
       Properties:
         RouteTableId: !Ref PublicRouteTable
-        SubnetId: !Ref PublicSubnetA
-
-    # Public Subnet B Route Table Association 
-    PublicSubnetBRouteTableAssociation:
-      Type: AWS::EC2::SubnetRouteTableAssociation
-      Properties:
-        RouteTableId: !Ref PublicRouteTable
-        SubnetId: !Ref PublicSubnetB
+        SubnetId: !Ref PublicSubnet
 
     # NAT Gateway Elastic IP
     NatGatewayEIP:
@@ -176,25 +179,25 @@ resources:
       Type: AWS::EC2::NatGateway
       Properties:
         AllocationId: !GetAtt NatGatewayEIP.AllocationId
-        SubnetId: !Ref PublicSubnetA
+        SubnetId: !Ref PublicSubnet
         Tags:
           - Key: Name
             Value: ${self:service}-${self:provider.stage}-nat
 
-    # Private Route Table
-    PrivateRouteTable:
+    # Private Lambda Route Table
+    LambdaRouteTable:
       Type: AWS::EC2::RouteTable
       Properties:
         VpcId: !Ref MainVPC
         Tags:
           - Key: Name
-            Value: ${self:service}-${self:provider.stage}-private-rt
+            Value: ${self:service}-${self:provider.stage}-lambda-rt
 
-    # Private Route
-    PrivateRoute:
+    # Private Lambda Route
+    LambdaRoute:
       Type: AWS::EC2::Route
       Properties:
-        RouteTableId: !Ref PrivateRouteTable
+        RouteTableId: !Ref LambdaRouteTable
         DestinationCidrBlock: 0.0.0.0/0
         NatGatewayId: !Ref NatGateway
 
@@ -202,15 +205,38 @@ resources:
     PrivateSubnetARouteTableAssociation:
       Type: AWS::EC2::SubnetRouteTableAssociation
       Properties:
-        RouteTableId: !Ref PrivateRouteTable
+        RouteTableId: !Ref LambdaRouteTable
         SubnetId: !Ref PrivateSubnetA
 
     # Private Subnet B Route Table Association
     PrivateSubnetBRouteTableAssociation:
       Type: AWS::EC2::SubnetRouteTableAssociation
       Properties:
-        RouteTableId: !Ref PrivateRouteTable
+        RouteTableId: !Ref LambdaRouteTable
         SubnetId: !Ref PrivateSubnetB
+        
+    # DB Route Table
+    DBRouteTable:
+      Type: AWS::EC2::RouteTable
+      Properties:
+        VpcId: !Ref MainVPC
+        Tags:
+          - Key: Name
+            Value: ${self:service}-${self:provider.stage}-db-rt
+
+    # DB Subnet A Route Table Association
+    DBSubnetARouteTableAssociation:
+      Type: AWS::EC2::SubnetRouteTableAssociation
+      Properties:
+        RouteTableId: !Ref DBRouteTable
+        SubnetId: !Ref DBPrivateSubnetA
+
+    # DB Subnet B Route Table Association
+    DBSubnetBRouteTableAssociation:
+      Type: AWS::EC2::SubnetRouteTableAssociation
+      Properties:
+        RouteTableId: !Ref DBRouteTable
+        SubnetId: !Ref DBPrivateSubnetB
 
     # Lambda Security Group
     LambdaSecurityGroup:
@@ -236,11 +262,11 @@ resources:
             FromPort: 5432
             ToPort: 5432
             SourceSecurityGroupId: !Ref LambdaSecurityGroup
-          #   # Bastion Host -- comment if not needed
-          # - IpProtocol: tcp
-          #   FromPort: 5432
-          #   ToPort: 5432
-          #   SourceSecurityGroupId: !Ref BastionSecurityGroup
+          # Bastion Host access to DB
+          - IpProtocol: tcp
+            FromPort: 5432
+            ToPort: 5432
+            SourceSecurityGroupId: !Ref BastionSecurityGroup
         Tags:
           - Key: Name
             Value: ${self:service}-${self:provider.stage}-aurora-sg
@@ -251,8 +277,8 @@ resources:
       Properties:
         DBSubnetGroupDescription: Subnet group for Aurora database
         SubnetIds:
-          - !Ref PrivateSubnetA
-          - !Ref PrivateSubnetB
+          - !Ref DBPrivateSubnetA
+          - !Ref DBPrivateSubnetB
         Tags:
           - Key: Name
             Value: ${self:service}-${self:provider.stage}-db-subnet-group
@@ -304,33 +330,34 @@ resources:
           - Key: Name
             Value: ${self:service}-${self:provider.stage}-aurora-instance
 
-    # Bastion Host -- comment if not needed
-    # BastionHost:
-    #   Type: AWS::EC2::Instance
-    #   Properties:
-    #     InstanceType: t3.micro
-    #     SubnetId: !Ref PublicSubnetA
-    #     ImageId: ami-072e42fd77921edac  # Amazon Linux 2023 AMI (us-east-1)
-    #     SecurityGroupIds:
-    #       - !Ref BastionSecurityGroup
-    #     KeyName: aurora-bastion-key  # Create this in AWS Console first
-    #     Tags:
-    #       - Key: Name
-    #         Value: ${self:service}-${self:provider.stage}-bastion
+    # Bastion Host Security Group
+    BastionSecurityGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupDescription: Security group for bastion host
+        VpcId: !Ref MainVPC
+        SecurityGroupIngress:
+          - IpProtocol: tcp
+            FromPort: 22
+            ToPort: 22
+            CidrIp: 103.84.105.5/32  # Replace with your IP address
+        Tags:
+          - Key: Name
+            Value: ${self:service}-${self:provider.stage}-bastion-sg
 
-    # BastionSecurityGroup:
-    #   Type: AWS::EC2::SecurityGroup
-    #   Properties:
-    #     GroupDescription: Security group for bastion host
-    #     VpcId: !Ref MainVPC
-    #     SecurityGroupIngress:
-    #       - IpProtocol: tcp
-    #         FromPort: 22
-    #         ToPort: 22
-    #         CidrIp: 103.84.105.5/32  # Replace with your IP address
-    #     Tags:
-    #       - Key: Name
-    #         Value: ${self:service}-${self:provider.stage}-bastion-sg
+    # Bastion Host
+    BastionHost:
+      Type: AWS::EC2::Instance
+      Properties:
+        InstanceType: t3.micro
+        SubnetId: !Ref PublicSubnet
+        ImageId: ami-072e42fd77921edac  # Amazon Linux 2023 AMI (us-east-1)
+        SecurityGroupIds:
+          - !Ref BastionSecurityGroup
+        KeyName: aurora-bastion-key  # Create this in AWS Console first
+        Tags:
+          - Key: Name
+            Value: ${self:service}-${self:provider.stage}-bastion
 
   Outputs:
     VpcId:
@@ -347,6 +374,16 @@ resources:
       Value: !Ref PrivateSubnetB
       Export:
         Name: ${self:service}-${self:provider.stage}-private-subnet-b
+        
+    DBPrivateSubnetA:
+      Value: !Ref DBPrivateSubnetA
+      Export:
+        Name: ${self:service}-${self:provider.stage}-db-private-subnet-a
+        
+    DBPrivateSubnetB:
+      Value: !Ref DBPrivateSubnetB
+      Export:
+        Name: ${self:service}-${self:provider.stage}-db-private-subnet-b
         
     AuroraSecretArn:
       Value: !Ref AuroraSecret
