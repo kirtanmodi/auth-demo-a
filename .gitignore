@@ -60,3 +60,9 @@ ehthumbs.db
 # Temporary files
 *.swp
 *.swo
+
+
+node_modules/
+dist/
+.env
+*.log
