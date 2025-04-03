@@ -5,6 +5,11 @@
   "main": "handler.js",
   "type": "module",
   "scripts": {
+    "typeorm": "typeorm-ts-node-commonjs",
+    "migration:generate": "npm run typeorm -- migration:generate -d src/data-source/index.ts",
+    "migration:run": "npm run typeorm -- migration:run -d src/data-source/index.ts",
+    "migration:revert": "npm run typeorm -- migration:revert -d src/data-source/index.ts",
+    "lint": "eslint . --ext .ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "deploy": "serverless deploy --stage dev --aws-profile payrix",
     "remove": "serverless remove --stage dev --aws-profile payrix",

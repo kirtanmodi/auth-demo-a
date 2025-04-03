@@ -67,3 +67,22 @@ This will start a local emulator of AWS Lambda and tunnel your requests to and f
 Now you can invoke the function as before, but this time the function will be executed locally. Now you can develop your function locally, invoke it, and see the results immediately without having to re-deploy.
 
 When you are done developing, don't forget to run `serverless deploy` to deploy the function to the cloud.
+
+
+### To run bastion host
+
+```
+chmod 400 aurora-bastion-key.pem
+```
+
+```
+ ssh -i aurora-bastion-key.pem -L 5432:auth-demo-c-dev-auroracluster-z5lnqndwtc3l.cluster-cafk8mqqcxzp.us-east-1.rds.amazonaws.com:5432 ec2-user@54.210.188.99
+ ```
+
+ ```
+aws secretsmanager get-secret-value \
+    --secret-id auth-demo-c/dev/aurora-credentials \
+    --query SecretString \
+    --profile payrix \
+    --output text
+```
