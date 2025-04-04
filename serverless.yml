@@ -1,6 +1,13 @@
 org: kirtanmodi
 service: auth-demo-c
 
+plugins:
+  - serverless-iam-roles-per-function
+  - serverless-export-env
+  - serverless-offline
+  # - serverless-domain-manager
+
+
 provider:
   name: aws
   runtime: nodejs20.x
@@ -395,8 +402,6 @@ resources:
       Export:
         Name: ${self:service}-${self:provider.stage}-lambda-sg-id
 
-plugins:
-  - serverless-iam-roles-per-function
 
 package:
   individually: true
