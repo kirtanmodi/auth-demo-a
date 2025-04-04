@@ -18,22 +18,72 @@ This project uses a split stack approach with Serverless Framework to separate i
 
 - `/infra/serverless.yml` - Infrastructure stack (VPC, RDS, etc.)
 - `/functions/serverless.yml` - Lambda functions stack
+- `/bastion/serverless.yml` - Bastion host stack
 
-## Deployment
+## Deployment Order
 
-### 1. Deploy Infrastructure
+### Manual Deployment
+
+#### 1. Deploy Infrastructure
 
 ```bash
 cd infra
 serverless deploy
 ```
 
-### 2. Deploy Functions
+#### 2. Deploy Bastion Host
+
+```bash
+cd bastion
+serverless deploy
+```
+
+#### 3. Deploy Functions
 
 ```bash
 cd functions
 serverless deploy
 ```
+
+### Using NPM Scripts
+
+For convenience, npm scripts are provided to deploy and remove stacks:
+
+```bash
+# Deploy all stacks in the correct order
+npm run deploy:all
+
+# Deploy individual stacks
+npm run deploy:infra
+npm run deploy:bastion
+npm run deploy:functions
+
+# Deploy specific functions
+npm run function:create-merchant
+npm run function:list-merchants
+
+# Generate .env files with environment variables
+npm run export-env:infra
+npm run export-env:functions
+
+# Remove stacks (reverse order)
+npm run remove:all
+
+# Remove individual stacks
+npm run remove:functions
+npm run remove:bastion
+npm run remove:infra
+```
+
+## Dependency Management
+
+The stacks are designed to avoid circular dependencies:
+
+1. **Infrastructure Stack**: Base infrastructure with no dependencies on other stacks
+2. **Bastion Stack**: Depends on Infrastructure stack, adds security group rules to resources in the Infrastructure stack
+3. **Functions Stack**: Depends on Infrastructure stack, references resources from both stacks
+
+This design pattern allows for clean separation while maintaining proper dependency order.
 
 ## Benefits of Split Stacks
 
@@ -41,6 +91,7 @@ serverless deploy
 - **Faster Deployments**: Function-only deployments are much faster
 - **Better Organization**: Clearer separation of concerns
 - **Team Collaboration**: Different teams can manage different stacks
+- **Security Isolation**: Bastion host in separate stack for better security management
 
 ## Individual Function Deployment
 
@@ -53,7 +104,28 @@ serverless deploy function -f createMerchant
 
 ## Cross-Stack References
 
-The functions stack references resources from the infrastructure stack using CloudFormation exports through the `${cf:stack-name.output-name}` syntax.
+The stacks reference resources from each other using CloudFormation exports through the `${cf:stack-name.output-name}` syntax:
+
+- Infrastructure exports VPC, subnets, security groups, DB connection info
+- Bastion stack imports VPC and public subnet from infrastructure
+- Functions stack imports DB connection info and network configuration from infrastructure
+
+## To run bastion host
+
+```
+chmod 400 aurora-bastion-key.pem
+```
+
+```
+ssh -i aurora-bastion-key.pem -L 5432:${DB_ENDPOINT}:5432 ec2-user@$(aws cloudformation describe-stacks --stack-name auth-demo-c-bastion-dev --query "Stacks[0].Outputs[?OutputKey=='BastionPublicIP'].OutputValue" --output text)
+```
+
+```
+aws secretsmanager get-secret-value \
+    --secret-id auth-demo-c/dev/aurora-credentials \
+    --query SecretString \
+    --output text
+```
 
 # Serverless Framework Node HTTP API on AWS
 
@@ -112,22 +184,3 @@ This will start a local emulator of AWS Lambda and tunnel your requests to and f
 Now you can invoke the function as before, but this time the function will be executed locally. Now you can develop your function locally, invoke it, and see the results immediately without having to re-deploy.
 
 When you are done developing, don't forget to run `serverless deploy` to deploy the function to the cloud.
-
-
-### To run bastion host
-
-```
-chmod 400 aurora-bastion-key.pem
-```
-
-```
- ssh -i aurora-bastion-key.pem -L 5432:auth-demo-c-dev-auroracluster-z5lnqndwtc3l.cluster-cafk8mqqcxzp.us-east-1.rds.amazonaws.com:5432 ec2-user@54.210.188.99
- ```
-
- ```
-aws secretsmanager get-secret-value \
-    --secret-id auth-demo-c/dev/aurora-credentials \
-    --query SecretString \
-    --profile payrix \
-    --output text
-```

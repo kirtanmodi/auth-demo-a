@@ -253,11 +253,7 @@ resources:
             FromPort: 5432
             ToPort: 5432
             SourceSecurityGroupId: !Ref LambdaSecurityGroup
-          # Bastion Host access to DB
-          - IpProtocol: tcp
-            FromPort: 5432
-            ToPort: 5432
-            SourceSecurityGroupId: !Ref BastionSecurityGroup
+          # Bastion Host access will be added by bastion stack
         Tags:
           - Key: Name
             Value: ${self:service}-${self:provider.stage}-aurora-sg
@@ -321,35 +317,6 @@ resources:
           - Key: Name
             Value: ${self:service}-${self:provider.stage}-aurora-instance
 
-    # Bastion Host Security Group
-    BastionSecurityGroup:
-      Type: AWS::EC2::SecurityGroup
-      Properties:
-        GroupDescription: Security group for bastion host
-        VpcId: !Ref MainVPC
-        SecurityGroupIngress:
-          - IpProtocol: tcp
-            FromPort: 22
-            ToPort: 22
-            CidrIp: 103.84.105.5/32  # Replace with your IP address
-        Tags:
-          - Key: Name
-            Value: ${self:service}-${self:provider.stage}-bastion-sg
-
-    # Bastion Host
-    BastionHost:
-      Type: AWS::EC2::Instance
-      Properties:
-        InstanceType: t3.micro
-        SubnetId: !Ref PublicSubnet
-        ImageId: ami-072e42fd77921edac  # Amazon Linux 2023 AMI (us-east-1)
-        SecurityGroupIds:
-          - !Ref BastionSecurityGroup
-        KeyName: aurora-bastion-key  # Create this in AWS Console first
-        Tags:
-          - Key: Name
-            Value: ${self:service}-${self:provider.stage}-bastion
-
   Outputs:
     VpcId:
       Value: !Ref MainVPC
@@ -386,6 +353,11 @@ resources:
       Export:
         Name: ${self:service}-${self:provider.stage}-lambda-sg-id
         
+    AuroraSecurityGroupId:
+      Value: !Ref AuroraSecurityGroup
+      Export:
+        Name: ${self:service}-${self:provider.stage}-aurora-sg-id
+        
     AuroraClusterEndpoint:
       Value: !GetAtt AuroraCluster.Endpoint.Address
       Export:
@@ -395,6 +367,11 @@ resources:
       Value: !GetAtt AuroraCluster.Endpoint.Port
       Export:
         Name: ${self:service}-${self:provider.stage}-aurora-port
+
+    PublicSubnet:
+      Value: !Ref PublicSubnet
+      Export:
+        Name: ${self:service}-${self:provider.stage}-public-subnet
 
 package:
   individually: true
