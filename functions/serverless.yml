@@ -16,9 +16,14 @@ provider:
     STAGE: ${self:provider.stage}
     # Database connection info
     DB_ENDPOINT: ${cf:auth-demo-c-${self:provider.stage}.AuroraClusterEndpoint}
+    DB_HOST: ${cf:auth-demo-c-${self:provider.stage}.AuroraClusterEndpoint}
     DB_PORT: ${cf:auth-demo-c-${self:provider.stage}.AuroraClusterPort}
     DB_NAME: authcleardb
     DB_SECRET_ARN: ${cf:auth-demo-c-${self:provider.stage}.AuroraSecretArn}
+    # These will be populated at runtime using the secret ARN
+    # But we include them here so serverless-export-env includes them in the .env file
+    DB_USERNAME: ${ssm:/aws/reference/secretsmanager/${self:service}/${self:provider.stage}/aurora-credentials:username, 'postgres'}
+    DB_PASSWORD: ${ssm:/aws/reference/secretsmanager/${self:service}/${self:provider.stage}/aurora-credentials:password, 'postgres'}
   
   # VPC configuration from main stack
   vpc:
@@ -35,7 +40,11 @@ provider:
         - Effect: Allow
           Action:
             - secretsmanager:GetSecretValue
-          Resource: ${cf:auth-demo-c-${self:provider.stage}.AuroraSecretArn}
+            - ssm:GetParameter
+            - ssm:GetParameters
+          Resource: 
+            - ${cf:auth-demo-c-${self:provider.stage}.AuroraSecretArn}
+            - "arn:aws:ssm:${self:provider.region}:*:parameter/*"
         # VPC permissions
         - Effect: Allow
           Action:
@@ -62,6 +71,11 @@ functions:
           path: /merchants
           method: get
           cors: true
+
+custom:
+  exportEnv:
+    overwrite: true
+    filename: ../.env
 
 package:
   individually: true

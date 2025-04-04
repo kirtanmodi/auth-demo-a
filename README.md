@@ -66,6 +66,9 @@ npm run function:list-merchants
 npm run export-env:infra
 npm run export-env:functions
 
+# Connect to the database through the bastion host
+npm run db:tunnel
+
 # Remove stacks (reverse order)
 npm run remove:all
 
@@ -110,21 +113,60 @@ The stacks reference resources from each other using CloudFormation exports thro
 - Bastion stack imports VPC and public subnet from infrastructure
 - Functions stack imports DB connection info and network configuration from infrastructure
 
-## To run bastion host
+## Connecting to the Database
 
-```
-chmod 400 aurora-bastion-key.pem
+The Aurora PostgreSQL database is deployed in a private subnet and is not directly accessible from the internet. To connect to it, you need to tunnel through the bastion host.
+
+### Using the Tunnel Script
+
+We've created a convenient script that automates the process of setting up an SSH tunnel to the database:
+
+```bash
+# Basic usage
+npm run db:tunnel
+
+# Advanced usage: customize stage, profile, key file, and local port
+./scripts/db-tunnel.sh <stage> <aws-profile> <key-file-path> <local-port>
 ```
 
-```
-ssh -i aurora-bastion-key.pem -L 5432:${DB_ENDPOINT}:5432 ec2-user@$(aws cloudformation describe-stacks --stack-name auth-demo-c-bastion-dev --query "Stacks[0].Outputs[?OutputKey=='BastionPublicIP'].OutputValue" --output text)
+The script:
+
+1. Gets the bastion IP and database endpoint automatically from CloudFormation
+2. Sets up a secure SSH tunnel
+3. Retrieves database credentials from Secrets Manager
+4. Sets up a `.pgpass` file for passwordless connections
+
+Once the tunnel is established, you can connect to the database using any PostgreSQL client:
+
+```bash
+# Connect with psql
+psql -h localhost -p 5432 -U postgres -d authcleardb
+
+# Or use a GUI tool like pgAdmin, pointing to:
+# Host: localhost
+# Port: 5432
+# Username: postgres (or whatever is in Secrets Manager)
+# Password: (retrieved from Secrets Manager)
+# Database: authcleardb
 ```
 
-```
-aws secretsmanager get-secret-value \
-    --secret-id auth-demo-c/dev/aurora-credentials \
-    --query SecretString \
-    --output text
+### Manual Approach
+
+If you prefer to set up the tunnel manually:
+
+```bash
+# Get the bastion IP
+BASTION_IP=$(aws cloudformation describe-stacks --stack-name auth-demo-c-bastion-dev \
+  --query "Stacks[0].Outputs[?OutputKey=='BastionPublicIP'].OutputValue" \
+  --output text)
+
+# Get the DB endpoint
+DB_ENDPOINT=$(aws cloudformation describe-stacks --stack-name auth-demo-c-dev \
+  --query "Stacks[0].Outputs[?OutputKey=='AuroraClusterEndpoint'].OutputValue" \
+  --output text)
+
+# Set up the tunnel
+ssh -i aurora-bastion-key.pem -L 5432:${DB_ENDPOINT}:5432 ec2-user@${BASTION_IP}
 ```
 
 # Serverless Framework Node HTTP API on AWS
@@ -132,6 +174,51 @@ aws secretsmanager get-secret-value \
 This template demonstrates how to make a simple HTTP API with Node.js running on AWS Lambda and API Gateway using the Serverless Framework.
 
 This template does not include any kind of persistence (database). For more advanced examples, check out the [serverless/examples repository](https://github.com/serverless/examples/) which includes Typescript, Mongo, DynamoDB and other examples.
+
+## Environment Variables
+
+This project uses `serverless-export-env` to automatically generate environment variables needed for both local development and deployed functions.
+
+### How It Works
+
+1. **Infrastructure Stack** - Defines resources and exports parameters
+2. **Functions Stack** - References these parameters and uses them to set environment variables
+3. **serverless-export-env** - Generates a `.env` file containing all environment variables
+
+### Database Connection
+
+The TypeORM data source automatically connects to the Aurora database using these environment variables:
+
+- `DB_HOST` - Aurora cluster endpoint
+- `DB_PORT` - Aurora port (typically 5432)
+- `DB_USERNAME` - Retrieved from Secrets Manager
+- `DB_PASSWORD` - Retrieved from Secrets Manager
+- `DB_NAME` - Database name
+
+### Generating Environment Variables
+
+To generate the environment variables for local development:
+
+```bash
+npm run export-env
+```
+
+This will create a `.env` file in the project root that contains all necessary variables for TypeORM to connect to the database.
+
+### Database Migrations
+
+All migration commands automatically run `export-env` first to ensure the environment variables are available:
+
+```bash
+# Generate a migration
+npm run migration:generate -- migration-name
+
+# Run migrations
+npm run migration:run
+
+# Revert migrations
+npm run migration:revert
+```
 
 ## Usage
 
