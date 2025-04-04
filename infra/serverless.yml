@@ -7,7 +7,6 @@ plugins:
   - serverless-offline
   # - serverless-domain-manager
 
-
 provider:
   name: aws
   runtime: nodejs20.x
@@ -48,22 +47,7 @@ provider:
       - !Ref PrivateSubnetA
       - !Ref PrivateSubnetB
 
-functions:
-  createMerchant:
-    handler: src/functions/merchants/create.handler
-    events:
-      - http:
-          path: /merchants
-          method: post
-          cors: true
-  
-  listMerchants:
-    handler: src/functions/merchants/list.handler
-    events:
-      - http:
-          path: /merchants
-          method: get
-          cors: true
+# No functions in infrastructure stack
 
 resources:
   Resources:
@@ -401,11 +385,20 @@ resources:
       Value: !Ref LambdaSecurityGroup
       Export:
         Name: ${self:service}-${self:provider.stage}-lambda-sg-id
-
+        
+    AuroraClusterEndpoint:
+      Value: !GetAtt AuroraCluster.Endpoint.Address
+      Export:
+        Name: ${self:service}-${self:provider.stage}-aurora-endpoint
+        
+    AuroraClusterPort:
+      Value: !GetAtt AuroraCluster.Endpoint.Port
+      Export:
+        Name: ${self:service}-${self:provider.stage}-aurora-port
 
 package:
   individually: true
   exclude:
     - node_modules/**
   include:
-    - src/**
+    - src/** 

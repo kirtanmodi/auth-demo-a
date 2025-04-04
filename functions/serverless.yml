@@ -1,0 +1,71 @@
+org: kirtanmodi
+service: auth-demo-c-functions
+
+plugins:
+  - serverless-iam-roles-per-function
+  - serverless-export-env
+  - serverless-offline
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  stage: ${opt:stage, 'dev'}
+  region: us-east-1
+  timeout: 30
+  environment:
+    STAGE: ${self:provider.stage}
+    # Database connection info
+    DB_ENDPOINT: ${cf:auth-demo-c-${self:provider.stage}.AuroraClusterEndpoint}
+    DB_PORT: ${cf:auth-demo-c-${self:provider.stage}.AuroraClusterPort}
+    DB_NAME: authcleardb
+    DB_SECRET_ARN: ${cf:auth-demo-c-${self:provider.stage}.AuroraSecretArn}
+  
+  # VPC configuration from main stack
+  vpc:
+    securityGroupIds:
+      - ${cf:auth-demo-c-${self:provider.stage}.LambdaSecurityGroupId}
+    subnetIds:
+      - ${cf:auth-demo-c-${self:provider.stage}.PrivateSubnetA}
+      - ${cf:auth-demo-c-${self:provider.stage}.PrivateSubnetB}
+  
+  # IAM permissions
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - secretsmanager:GetSecretValue
+          Resource: ${cf:auth-demo-c-${self:provider.stage}.AuroraSecretArn}
+        # VPC permissions
+        - Effect: Allow
+          Action:
+            - ec2:CreateNetworkInterface
+            - ec2:DescribeNetworkInterfaces
+            - ec2:DeleteNetworkInterface
+            - ec2:AssignPrivateIpAddresses
+            - ec2:UnassignPrivateIpAddresses
+          Resource: "*"
+
+functions:
+  createMerchant:
+    handler: ../src/functions/merchants/create.handler
+    events:
+      - http:
+          path: /merchants
+          method: post
+          cors: true
+  
+  listMerchants:
+    handler: ../src/functions/merchants/list.handler
+    events:
+      - http:
+          path: /merchants
+          method: get
+          cors: true
+
+package:
+  individually: true
+  exclude:
+    - node_modules/**
+  include:
+    - ../src/** 

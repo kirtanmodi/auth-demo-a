@@ -10,6 +10,51 @@ authorName: 'Serverless, Inc.'
 authorAvatar: 'https://avatars1.githubusercontent.com/u/13742415?s=200&v=4'
 -->
 
+# Auth Demo Project
+
+This project uses a split stack approach with Serverless Framework to separate infrastructure from function code.
+
+## Project Structure
+
+- `/infra/serverless.yml` - Infrastructure stack (VPC, RDS, etc.)
+- `/functions/serverless.yml` - Lambda functions stack
+
+## Deployment
+
+### 1. Deploy Infrastructure
+
+```bash
+cd infra
+serverless deploy
+```
+
+### 2. Deploy Functions
+
+```bash
+cd functions
+serverless deploy
+```
+
+## Benefits of Split Stacks
+
+- **Isolation**: Infrastructure changes won't affect function deployments
+- **Faster Deployments**: Function-only deployments are much faster
+- **Better Organization**: Clearer separation of concerns
+- **Team Collaboration**: Different teams can manage different stacks
+
+## Individual Function Deployment
+
+To deploy a single function without touching infrastructure:
+
+```bash
+cd functions
+serverless deploy function -f createMerchant
+```
+
+## Cross-Stack References
+
+The functions stack references resources from the infrastructure stack using CloudFormation exports through the `${cf:stack-name.output-name}` syntax.
+
 # Serverless Framework Node HTTP API on AWS
 
 This template demonstrates how to make a simple HTTP API with Node.js running on AWS Lambda and API Gateway using the Serverless Framework.
