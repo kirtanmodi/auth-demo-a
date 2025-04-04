@@ -7,10 +7,10 @@ export class MerchantDocument {
   @PrimaryGeneratedColumn("uuid")
   document_id: string;
 
-  @Column()
+  @Column({ type: "uuid" })
   merchant_id: string;
 
-  @Column({ nullable: true })
+  @Column({ type: "uuid", nullable: true })
   member_id: string;
 
   @CreateDateColumn({ type: "timestamp with time zone" })
@@ -22,16 +22,16 @@ export class MerchantDocument {
   @Column({ type: "smallint" })
   document_type: number;
 
-  @Column({ length: 255 })
+  @Column({ type: "varchar", length: 255 })
   document_name: string;
 
-  @Column({ length: 1024 })
+  @Column({ type: "varchar", length: 1024 })
   document_path: string;
 
-  @Column({ length: 100 })
+  @Column({ type: "varchar", length: 100 })
   mime_type: string;
 
-  @Column()
+  @Column({ type: "integer" })
   file_size: number;
 
   @Column({ type: "smallint", default: 0 })
@@ -40,7 +40,7 @@ export class MerchantDocument {
   @Column({ type: "timestamp with time zone", nullable: true })
   verification_date: Date;
 
-  @Column({ length: 50, nullable: true })
+  @Column({ type: "varchar", length: 50, nullable: true })
   verified_by: string;
 
   // Relations

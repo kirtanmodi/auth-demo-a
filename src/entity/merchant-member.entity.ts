@@ -7,7 +7,7 @@ export class MerchantMember {
   @PrimaryGeneratedColumn("uuid")
   member_id: string;
 
-  @Column()
+  @Column({ type: "uuid" })
   merchant_id: string;
 
   @CreateDateColumn({ type: "timestamp with time zone" })
@@ -16,16 +16,16 @@ export class MerchantMember {
   @UpdateDateColumn({ type: "timestamp with time zone" })
   updated_at: Date;
 
-  @Column({ length: 100, nullable: true })
+  @Column({ type: "varchar", length: 100, nullable: true })
   title: string;
 
-  @Column({ length: 100 })
+  @Column({ type: "varchar", length: 100 })
   first_name: string;
 
-  @Column({ length: 100 })
+  @Column({ type: "varchar", length: 100 })
   last_name: string;
 
-  @Column({ length: 20 })
+  @Column({ type: "varchar", length: 20 })
   ssn: string;
 
   @Column({ type: "date" })
@@ -34,38 +34,38 @@ export class MerchantMember {
   @Column({ type: "smallint" })
   ownership_percentage: number;
 
-  @Column({ default: false })
+  @Column({ type: "boolean", default: false })
   significant_responsibility: boolean;
 
-  @Column({ default: false })
+  @Column({ type: "boolean", default: false })
   politically_exposed: boolean;
 
-  @Column({ length: 255 })
+  @Column({ type: "varchar", length: 255 })
   email: string;
 
-  @Column({ length: 20 })
+  @Column({ type: "varchar", length: 20 })
   phone: string;
 
-  @Column({ default: false })
+  @Column({ type: "boolean", default: false })
   is_primary: boolean;
 
   // Address
-  @Column({ length: 255 })
+  @Column({ type: "varchar", length: 255 })
   address1: string;
 
-  @Column({ length: 255, nullable: true })
+  @Column({ type: "varchar", length: 255, nullable: true })
   address2: string;
 
-  @Column({ length: 100 })
+  @Column({ type: "varchar", length: 100 })
   city: string;
 
-  @Column({ length: 50 })
+  @Column({ type: "varchar", length: 50 })
   state: string;
 
-  @Column({ length: 20 })
+  @Column({ type: "varchar", length: 20 })
   zip: string;
 
-  @Column({ length: 50 })
+  @Column({ type: "varchar", length: 50 })
   country: string;
 
   // Identity verification fields

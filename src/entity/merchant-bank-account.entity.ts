@@ -6,7 +6,7 @@ export class MerchantBankAccount {
   @PrimaryGeneratedColumn("uuid")
   account_id: string;
 
-  @Column()
+  @Column({ type: "uuid" })
   merchant_id: string;
 
   @CreateDateColumn({ type: "timestamp with time zone" })
@@ -15,22 +15,22 @@ export class MerchantBankAccount {
   @UpdateDateColumn({ type: "timestamp with time zone" })
   updated_at: Date;
 
-  @Column({ default: false })
+  @Column({ type: "boolean", default: false })
   is_primary: boolean;
 
   @Column({ type: "smallint" })
   account_method: number;
 
-  @Column({ length: 255 })
+  @Column({ type: "varchar", length: 255 })
   account_number: string;
 
-  @Column({ length: 50 })
+  @Column({ type: "varchar", length: 50 })
   routing_number: string;
 
-  @Column({ length: 255, nullable: true })
+  @Column({ type: "varchar", length: 255, nullable: true })
   account_name: string;
 
-  @Column({ length: 3 })
+  @Column({ type: "varchar", length: 3 })
   currency: string;
 
   @Column({ type: "smallint", default: 0 })

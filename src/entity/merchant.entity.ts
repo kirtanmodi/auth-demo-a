@@ -21,53 +21,53 @@ export class Merchant {
   @Column({ type: "smallint" })
   entity_type: number;
 
-  @Column({ length: 255 })
+  @Column({ type: "varchar", length: 255 })
   legal_name: string;
 
-  @Column({ length: 255 })
+  @Column({ type: "varchar", length: 255 })
   address1: string;
 
-  @Column({ length: 255, nullable: true })
+  @Column({ type: "varchar", length: 255, nullable: true })
   address2: string;
 
-  @Column({ length: 100 })
+  @Column({ type: "varchar", length: 100 })
   city: string;
 
-  @Column({ length: 50 })
+  @Column({ type: "varchar", length: 50 })
   state: string;
 
-  @Column({ length: 20 })
+  @Column({ type: "varchar", length: 20 })
   zip: string;
 
-  @Column({ length: 50 })
+  @Column({ type: "varchar", length: 50 })
   country: string;
 
-  @Column({ length: 20 })
+  @Column({ type: "varchar", length: 20 })
   phone: string;
 
-  @Column({ length: 255, unique: true })
+  @Column({ type: "varchar", length: 255, unique: true })
   email: string;
 
-  @Column({ length: 20, nullable: true })
+  @Column({ type: "varchar", length: 20, nullable: true })
   ein: string;
 
-  @Column({ length: 255, nullable: true })
+  @Column({ type: "varchar", length: 255, nullable: true })
   website: string;
 
-  @Column({ length: 10 })
+  @Column({ type: "varchar", length: 10 })
   tc_version: string;
 
-  @Column({ length: 3 })
+  @Column({ type: "varchar", length: 3 })
   currency: string;
 
   // Merchant Business Information
-  @Column({ length: 255, nullable: true })
+  @Column({ type: "varchar", length: 255, nullable: true })
   dba_name: string;
 
-  @Column({ default: true })
+  @Column({ type: "boolean", default: true })
   is_new: boolean;
 
-  @Column({ length: 4 })
+  @Column({ type: "varchar", length: 4 })
   mcc: string;
 
   @Column({ type: "smallint", default: 0 })
@@ -92,7 +92,7 @@ export class Merchant {
   @Column({ type: "timestamp with time zone", nullable: true })
   approval_date: Date;
 
-  @Column({ length: 50, nullable: true })
+  @Column({ type: "varchar", length: 50, nullable: true })
   approved_by: string;
 
   // Relations

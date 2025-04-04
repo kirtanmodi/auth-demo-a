@@ -21,9 +21,8 @@ provider:
     DB_NAME: authcleardb
     DB_SECRET_ARN: ${cf:auth-demo-c-${self:provider.stage}.AuroraSecretArn}
     # These will be populated at runtime using the secret ARN
-    # But we include them here so serverless-export-env includes them in the .env file
-    DB_USERNAME: ${ssm:/aws/reference/secretsmanager/auth-demo-c/${self:provider.stage}/aurora-credentials:username, 'postgres'}
-    DB_PASSWORD: ${ssm:/aws/reference/secretsmanager/auth-demo-c/${self:provider.stage}/aurora-credentials:password, 'postgres'}
+    DB_USERNAME: ${env:DB_USERNAME, 'postgres'}
+    DB_PASSWORD: ${env:DB_PASSWORD, 'postgres'}
   
   # VPC configuration from main stack
   vpc:

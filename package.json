@@ -5,7 +5,7 @@
   "main": "handler.js",
   "type": "module",
   "scripts": {
-    "typeorm": "typeorm-ts-node-commonjs",
+    "typeorm": "tsx ./node_modules/typeorm/cli.js",
     "export-env": "cd functions && serverless export-env --stage dev --aws-profile payrix",
     "generate-env": "./scripts/generate-env.sh dev payrix",
     "migration:generate": "npm run export-env && npm run typeorm -- migration:generate -d src/data-source/index.ts",

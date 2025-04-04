@@ -6,7 +6,7 @@ export class MerchantOnboardingStatus {
   @PrimaryGeneratedColumn("uuid")
   status_id: string;
 
-  @Column()
+  @Column({ type: "uuid" })
   merchant_id: string;
 
   @CreateDateColumn({ type: "timestamp with time zone" })
@@ -18,28 +18,28 @@ export class MerchantOnboardingStatus {
   @Column({ type: "smallint", default: 1 })
   current_step: number;
 
-  @Column({ default: false })
+  @Column({ type: "boolean", default: false })
   is_completed: boolean;
 
   @Column({ type: "timestamp with time zone", nullable: true })
   completion_date: Date;
 
-  @Column({ default: false })
+  @Column({ type: "boolean", default: false })
   entity_info_completed: boolean;
 
-  @Column({ default: false })
+  @Column({ type: "boolean", default: false })
   bank_info_completed: boolean;
 
-  @Column({ default: false })
+  @Column({ type: "boolean", default: false })
   owner_info_completed: boolean;
 
-  @Column({ default: false })
+  @Column({ type: "boolean", default: false })
   documents_uploaded: boolean;
 
-  @Column({ default: false })
+  @Column({ type: "boolean", default: false })
   verification_completed: boolean;
 
-  @Column({ default: false })
+  @Column({ type: "boolean", default: false })
   agreement_accepted: boolean;
 
   // Additional status fields
@@ -52,7 +52,7 @@ export class MerchantOnboardingStatus {
   @Column({ type: "smallint", default: 0 })
   underwriting_status: number;
 
-  @Column({ default: false })
+  @Column({ type: "boolean", default: false })
   is_automated_onboarding: boolean;
 
   @Column({ type: "text", nullable: true })
