@@ -7,6 +7,7 @@
   "scripts": {
     "typeorm": "typeorm-ts-node-commonjs",
     "export-env": "cd functions && serverless export-env --stage dev --aws-profile payrix",
+    "generate-env": "./scripts/generate-env.sh dev payrix",
     "migration:generate": "npm run export-env && npm run typeorm -- migration:generate -d src/data-source/index.ts",
     "migration:run": "npm run export-env && npm run typeorm -- migration:run -d src/data-source/index.ts",
     "migration:revert": "npm run export-env && npm run typeorm -- migration:revert -d src/data-source/index.ts",
