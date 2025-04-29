@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auth Demo Application</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+        .container {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .api-key {
+            background-color: #f1f1f1;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            margin: 10px 0;
+        }
+        .environment {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .dev {
+            background-color: #3498db;
+            color: white;
+        }
+        .test {
+            background-color: #f39c12;
+            color: white;
+        }
+        .prod {
+            background-color: #27ae60;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Auth Demo Application <span class="environment dev" id="environment">DEV</span></h1>
+        
+        <p>This is a placeholder page for the Auth Demo Application. The application is deployed using CloudFront and S3, with secure API access via Lambda authorizers.</p>
+        
+        <h2>Environment Information</h2>
+        <p>Current environment: <strong id="env-name">Development</strong></p>
+        <p>API Endpoint: <strong id="api-endpoint">Loading...</strong></p>
+        
+        <h2>Testing API Access</h2>
+        <p>To test API access, use the button below:</p>
+        <button id="test-api">Test API Connection</button>
+        <div id="api-response"></div>
+        
+        <h2>Authorization</h2>
+        <p>This application uses bearer token authorization for API access. Tokens are stored securely in AWS Systems Manager Parameter Store.</p>
+    </div>
+
+    <script>
+        // Determine environment based on URL
+        document.addEventListener('DOMContentLoaded', function() {
+            const hostname = window.location.hostname;
+            let environment = 'DEV';
+            let environmentFull = 'Development';
+            let apiEndpoint = 'https://jo8ds5zxxh.execute-api.us-east-1.amazonaws.com/dev';
+            
+            if (hostname.includes('prod')) {
+                environment = 'PROD';
+                environmentFull = 'Production';
+                apiEndpoint = 'https://jo8ds5zxxh.execute-api.us-east-1.amazonaws.com/prod';
+                document.getElementById('environment').className = 'environment prod';
+            } else if (hostname.includes('test')) {
+                environment = 'DEV';
+                environmentFull = 'Development';
+                apiEndpoint = 'https://jo8ds5zxxh.execute-api.us-east-1.amazonaws.com/dev';
+                document.getElementById('environment').className = 'environment test';
+            }
+            
+            document.getElementById('environment').textContent = environment;
+            document.getElementById('env-name').textContent = environmentFull;
+            document.getElementById('api-endpoint').textContent = apiEndpoint;
+            
+            // Test API button
+            document.getElementById('test-api').addEventListener('click', function() {
+                const responseDiv = document.getElementById('api-response');
+                responseDiv.innerHTML = '<p>Testing API connection...</p>';
+                
+                // This would normally use the API key from environment variables
+                // For this placeholder, we're just simulating the response
+                setTimeout(() => {
+                    responseDiv.innerHTML = '<p>API connection test complete. Status: <strong>Unauthorized</strong></p><p>Note: This is expected behavior as this placeholder does not include actual API keys.</p>';
+                }, 1000);
+            });
+        });
+    </script>
+</body>
+</html> 
