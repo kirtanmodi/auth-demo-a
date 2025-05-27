@@ -1,5 +1,5 @@
 org: kirtanmodi
-service: auth-demo-c
+service: auth-demo-a
 
 plugins:
   - serverless-iam-roles-per-function
