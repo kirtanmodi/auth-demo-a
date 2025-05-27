@@ -59,10 +59,10 @@ Note: All deployment scripts are already configured to use the 'payrix' AWS prof
 ### Upload the placeholder index.html to S3
 ```bash
 # Get the S3 bucket name from CloudFormation outputs
-aws cloudformation describe-stacks --stack-name auth-demo-c-frontend-dev --query "Stacks[0].Outputs[?OutputKey=='FrontendBucketName'].OutputValue" --output text --profile payrix
+aws cloudformation describe-stacks --stack-name auth-demo-a-frontend-dev --query "Stacks[0].Outputs[?OutputKey=='FrontendBucketName'].OutputValue" --output text --profile payrix
 
 # Upload index.html to the S3 bucket
-aws s3 cp frontend/public/index.html s3://auth-demo-c-frontend-dev/index.html --profile payrix
+aws s3 cp frontend/public/index.html s3://auth-demo-a-frontend-dev/index.html --profile payrix
 ```
 
 ## 5. Configure Frontend Environment
@@ -134,7 +134,7 @@ npm run token:rotate -- --stage dev --profile payrix
 ### Authorization Errors
 - Check token format (must be "Bearer TOKEN")
 - Verify token value matches the one in SSM Parameter Store
-- Check SSM path is correct: `/auth-demo-c/${stage}/api-token`
+- Check SSM path is correct: `/auth-demo-a/${stage}/api-token`
 
 ### IAM Permission Issues
 - Verify Lambda execution roles have proper permissions

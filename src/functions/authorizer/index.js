@@ -23,8 +23,8 @@ async function getApiToken(stage) {
   }
 
   try {
-    // Parameter name follows the pattern /auth-demo-c/{stage}/api-token
-    const paramName = `/auth-demo-c/${stage}/api-token`;
+    // Parameter name follows the pattern /auth-demo-a/{stage}/api-token
+    const paramName = `/auth-demo-a/${stage}/api-token`;
 
     const command = new GetParameterCommand({
       Name: paramName,

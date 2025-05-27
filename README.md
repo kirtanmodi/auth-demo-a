@@ -156,12 +156,12 @@ If you prefer to set up the tunnel manually:
 
 ```bash
 # Get the bastion IP
-BASTION_IP=$(aws cloudformation describe-stacks --stack-name auth-demo-c-bastion-dev \
+BASTION_IP=$(aws cloudformation describe-stacks --stack-name auth-demo-a-bastion-dev \
   --query "Stacks[0].Outputs[?OutputKey=='BastionPublicIP'].OutputValue" \
   --output text)
 
 # Get the DB endpoint
-DB_ENDPOINT=$(aws cloudformation describe-stacks --stack-name auth-demo-c-dev \
+DB_ENDPOINT=$(aws cloudformation describe-stacks --stack-name auth-demo-a-dev \
   --query "Stacks[0].Outputs[?OutputKey=='AuroraClusterEndpoint'].OutputValue" \
   --output text)
 
