@@ -66,3 +66,8 @@ node_modules/
 dist/
 .env
 *.log
+
+
+*.mdc
+CLAUDE.md
+task-rules.mdc
