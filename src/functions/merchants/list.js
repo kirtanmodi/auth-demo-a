@@ -1,7 +1,4 @@
-const { Client } = require("pg");
-const AWS = require("aws-sdk");
-
-exports.handler = async (event) => {
+export const handler = async (event) => {
   // Return response
   return {
     statusCode: 200,

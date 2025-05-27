@@ -1,4 +1,3 @@
-import { APIGatewayAuthorizerResult, APIGatewayTokenAuthorizerEvent } from "aws-lambda";
 import { SSMClient, GetParameterCommand } from "@aws-sdk/client-ssm";
 
 // Initialize SSM client

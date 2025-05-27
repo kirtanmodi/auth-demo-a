@@ -57,7 +57,7 @@ provider:
 functions:
   # Token authorizer for API endpoints
   authorizerFunction:
-    handler: ../src/functions/authorizer/index.handler
+    handler: src/functions/authorizer/index.handler
     environment:
       STAGE: ${self:provider.stage}
     iamRoleStatements:
@@ -67,7 +67,7 @@ functions:
         Resource: "arn:aws:ssm:${self:provider.region}:*:parameter/auth-demo-a/${self:provider.stage}/*"
 
   createMerchant:
-    handler: ../src/functions/merchants/create.handler
+    handler: src/functions/merchants/create.handler
     events:
       - http:
           path: /merchants
@@ -82,6 +82,9 @@ functions:
               - X-Amz-Security-Token
               - X-Amz-User-Agent
             allowCredentials: true
+            methods:
+              - POST
+              - OPTIONS
           authorizer:
             name: authorizerFunction
             type: token
@@ -89,7 +92,7 @@ functions:
             resultTtlInSeconds: 300
   
   listMerchants:
-    handler: ../src/functions/merchants/list.handler
+    handler: src/functions/merchants/list.handler
     events:
       - http:
           path: /merchants
@@ -104,6 +107,9 @@ functions:
               - X-Amz-Security-Token
               - X-Amz-User-Agent
             allowCredentials: true
+            methods:
+              - GET
+              - OPTIONS
           authorizer:
             name: authorizerFunction
             type: token
@@ -111,14 +117,13 @@ functions:
             resultTtlInSeconds: 300
 
 custom:
-  corsOrigins: "'https://${cf:auth-demo-a-frontend-dev.CloudFrontDomainName},http://localhost:3000'"
+  corsOrigins: "'https://${cf:auth-demo-a-frontend-dev.CloudFrontDomainName},http://localhost:3000,http://localhost:8080'"
   exportEnv:
     overwrite: true
     filename: ../.env
 
 package:
   individually: true
-  exclude:
-    - node_modules/**
-  include:
-    - ../src/** 
+  patterns:
+    - '!node_modules/**'
+    - 'src/**' 

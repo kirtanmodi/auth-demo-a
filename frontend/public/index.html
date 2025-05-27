@@ -78,7 +78,10 @@
             const hostname = window.location.hostname;
             let environment = 'DEV';
             let environmentFull = 'Development';
-            let apiEndpoint = 'https://jo8ds5zxxh.execute-api.us-east-1.amazonaws.com/dev';
+            let apiEndpoint = 'https://szuj9eslmc.execute-api.us-east-1.amazonaws.com/dev';
+            
+            // For local development, you'll need to set this manually or via a build process
+            const API_KEY = '14068d3b9a2b79180ee4b93529d1830781b3ddec8fae37d46f78d4969ce243ef'; // Replace with actual token from .env
             
             if (hostname.includes('prod')) {
                 environment = 'PROD';
@@ -86,9 +89,9 @@
                 apiEndpoint = 'https://jo8ds5zxxh.execute-api.us-east-1.amazonaws.com/prod';
                 document.getElementById('environment').className = 'environment prod';
             } else if (hostname.includes('test')) {
-                environment = 'DEV';
-                environmentFull = 'Development';
-                apiEndpoint = 'https://jo8ds5zxxh.execute-api.us-east-1.amazonaws.com/dev';
+                environment = 'TEST';
+                environmentFull = 'Test';
+                apiEndpoint = 'https://jo8ds5zxxh.execute-api.us-east-1.amazonaws.com/test';
                 document.getElementById('environment').className = 'environment test';
             }
             
@@ -97,15 +100,46 @@
             document.getElementById('api-endpoint').textContent = apiEndpoint;
             
             // Test API button
-            document.getElementById('test-api').addEventListener('click', function() {
+            document.getElementById('test-api').addEventListener('click', async function() {
                 const responseDiv = document.getElementById('api-response');
                 responseDiv.innerHTML = '<p>Testing API connection...</p>';
                 
-                // This would normally use the API key from environment variables
-                // For this placeholder, we're just simulating the response
-                setTimeout(() => {
-                    responseDiv.innerHTML = '<p>API connection test complete. Status: <strong>Unauthorized</strong></p><p>Note: This is expected behavior as this placeholder does not include actual API keys.</p>';
-                }, 1000);
+                try {
+                    const response = await fetch(`${apiEndpoint}/merchants`, {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${API_KEY}`,
+                            'Content-Type': 'application/json',
+                        },
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        responseDiv.innerHTML = `
+                            <div style="background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 10px; border-radius: 4px; margin: 10px 0;">
+                                <strong>✅ API Connection Successful!</strong><br>
+                                Status: ${response.status}<br>
+                                Response: <pre>${JSON.stringify(data, null, 2)}</pre>
+                            </div>
+                        `;
+                    } else {
+                        responseDiv.innerHTML = `
+                            <div style="background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 10px; border-radius: 4px; margin: 10px 0;">
+                                <strong>❌ API Connection Failed</strong><br>
+                                Status: ${response.status}<br>
+                                Response: ${await response.text()}
+                            </div>
+                        `;
+                    }
+                } catch (error) {
+                    responseDiv.innerHTML = `
+                        <div style="background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 10px; border-radius: 4px; margin: 10px 0;">
+                            <strong>❌ Network Error</strong><br>
+                            Error: ${error.message}<br>
+                            <small>This might be a CORS issue or network connectivity problem.</small>
+                        </div>
+                    `;
+                }
             });
         });
     </script>
