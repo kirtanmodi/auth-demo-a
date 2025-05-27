@@ -34,6 +34,10 @@
     "export-env:infra": "cd infra && serverless export-env --stage dev --aws-profile payrix",
     "export-env:functions": "cd functions && serverless export-env --stage dev --aws-profile payrix",
     "db:tunnel": "./scripts/db-tunnel.sh dev payrix aurora-bastion-key.pem 5432",
+    "db:connect": "./scripts/db-connect.sh dev payrix connect",
+    "db:start": "./scripts/db-connect.sh dev payrix start",
+    "db:stop": "./scripts/db-connect.sh dev payrix stop",
+    "db:status": "./scripts/db-connect.sh dev payrix status",
     "deploy": "npm run deploy:all",
     "remove": "npm run remove:all",
     "offline": "cd functions && serverless offline start --stage dev --aws-profile payrix"
