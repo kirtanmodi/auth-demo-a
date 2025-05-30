@@ -11,6 +11,7 @@
     "migration:generate": "npm run typeorm -- migration:generate -d src/data-source/index.ts",
     "migration:run": "npm run typeorm -- migration:run -d src/data-source/index.ts",
     "migration:revert": "npm run typeorm -- migration:revert -d src/data-source/index.ts",
+    "user:create-admin": "npx tsx scripts/create-admin-user.ts",
     "lint": "eslint . --ext .ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "deploy:infra": "cd infra && serverless deploy --stage dev --aws-profile payrix",
@@ -45,9 +46,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.821.0",
     "@aws-sdk/client-ssm": "^3.536.0",
     "@types/aws-lambda": "^8.10.136",
     "@types/node": "^22.14.0",
+    "@types/pg": "^8.11.10",
     "aws-lambda": "^1.0.7",
     "aws-sdk": "^2.1692.0",
     "moment-timezone": "^0.5.48",
@@ -67,7 +70,9 @@
     "@types/yargs": "^17.0.32",
     "@typescript-eslint/eslint-plugin": "^8.29.0",
     "@typescript-eslint/parser": "^8.29.0",
+    "esbuild": "^0.25.5",
     "eslint": "^9.23.0",
-    "nodemon": "^3.1.9"
+    "nodemon": "^3.1.9",
+    "serverless-esbuild": "^1.55.0"
   }
 }

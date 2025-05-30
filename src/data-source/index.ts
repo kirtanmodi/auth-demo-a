@@ -38,4 +38,12 @@ export const AppDataSource = new DataSource({
   migrationsTableName: "migrations",
   migrationsRun: false,
   migrationsTransactionMode: "each",
+  extra: {
+    // Force IPv4 to avoid IPv6 connection issues
+    host: "127.0.0.1",
+    // Connection timeout settings
+    connectionTimeoutMillis: 10000,
+    idleTimeoutMillis: 30000,
+    max: 5,
+  },
 });

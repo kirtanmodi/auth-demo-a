@@ -1,22 +1,44 @@
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 import pg from "pg";
 import { randomUUID } from "crypto";
+import type { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 
 const { Client } = pg;
 
 // Initialize database connection
-let dbClient = null;
+let dbClient: pg.Client | null = null;
 
-async function initializeDatabase() {
+interface DatabaseConfig {
+  host: string;
+  port: number;
+  database: string;
+  user: string;
+  password: string;
+}
+
+interface CreateMerchantRequest {
+  businessName: string;
+  legalName: string;
+  email: string;
+  phone: string;
+  website?: string;
+}
+
+interface DatabaseCredentials {
+  username: string;
+  password: string;
+}
+
+async function initializeDatabase(): Promise<pg.Client> {
   if (dbClient) return dbClient;
 
   try {
-    let dbConfig = {
-      host: process.env.DB_HOST,
+    let dbConfig: DatabaseConfig = {
+      host: process.env.DB_HOST!,
       port: parseInt(process.env.DB_PORT || "5432"),
-      database: process.env.DB_NAME,
-      user: process.env.DB_USERNAME,
-      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME!,
+      user: process.env.DB_USERNAME!,
+      password: process.env.DB_PASSWORD!,
     };
 
     // Get database credentials from Secrets Manager if in AWS
@@ -28,7 +50,7 @@ async function initializeDatabase() {
         const response = await secretsManager.send(command);
 
         if (response.SecretString) {
-          const credentials = JSON.parse(response.SecretString);
+          const credentials: DatabaseCredentials = JSON.parse(response.SecretString);
           dbConfig.user = credentials.username;
           dbConfig.password = credentials.password;
         }
@@ -44,13 +66,13 @@ async function initializeDatabase() {
   }
 }
 
-export const handler = async (event) => {
+export const handler = async (event: APIGatewayProxyEvent, context: Context): Promise<APIGatewayProxyResult> => {
   try {
     // Initialize database connection
     const client = await initializeDatabase();
 
     // Parse request body
-    const body = JSON.parse(event.body || "{}");
+    const body: CreateMerchantRequest = JSON.parse(event.body || "{}");
 
     // Validate required fields
     if (!body.businessName || !body.legalName || !body.email || !body.phone) {
@@ -127,7 +149,7 @@ export const handler = async (event) => {
       },
       body: JSON.stringify({
         error: "Internal server error",
-        message: error.message,
+        message: (error as Error).message,
       }),
     };
   }

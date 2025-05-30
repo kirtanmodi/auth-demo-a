@@ -1,21 +1,57 @@
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 import pg from "pg";
+import type { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 
 const { Client } = pg;
 
 // Initialize database connection
-let dbClient = null;
+let dbClient: pg.Client | null = null;
 
-async function initializeDatabase() {
+interface DatabaseConfig {
+  host: string;
+  port: number;
+  database: string;
+  user: string;
+  password: string;
+}
+
+interface DatabaseCredentials {
+  username: string;
+  password: string;
+}
+
+interface MerchantRow {
+  merchant_id: string;
+  business_name: string;
+  legal_name: string;
+  email: string;
+  phone: string;
+  website: string | null;
+  status: number;
+  created_at: Date;
+}
+
+interface TransformedMerchant {
+  id: string;
+  businessName: string;
+  legalName: string;
+  email: string;
+  phone: string;
+  website: string | null;
+  status: string;
+  createdAt: Date;
+}
+
+async function initializeDatabase(): Promise<pg.Client> {
   if (dbClient) return dbClient;
 
   try {
-    let dbConfig = {
-      host: process.env.DB_HOST,
+    let dbConfig: DatabaseConfig = {
+      host: process.env.DB_HOST!,
       port: parseInt(process.env.DB_PORT || "5432"),
-      database: process.env.DB_NAME,
-      user: process.env.DB_USERNAME,
-      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME!,
+      user: process.env.DB_USERNAME!,
+      password: process.env.DB_PASSWORD!,
     };
 
     // Get database credentials from Secrets Manager if in AWS
@@ -27,7 +63,7 @@ async function initializeDatabase() {
         const response = await secretsManager.send(command);
 
         if (response.SecretString) {
-          const credentials = JSON.parse(response.SecretString);
+          const credentials: DatabaseCredentials = JSON.parse(response.SecretString);
           dbConfig.user = credentials.username;
           dbConfig.password = credentials.password;
         }
@@ -43,7 +79,7 @@ async function initializeDatabase() {
   }
 }
 
-export const handler = async (event) => {
+export const handler = async (event: APIGatewayProxyEvent, context: Context): Promise<APIGatewayProxyResult> => {
   try {
     // Initialize database connection
     const client = await initializeDatabase();
@@ -59,7 +95,7 @@ export const handler = async (event) => {
     const result = await client.query(query);
 
     // Transform data for frontend
-    const transformedMerchants = result.rows.map((merchant) => ({
+    const transformedMerchants: TransformedMerchant[] = result.rows.map((merchant: MerchantRow) => ({
       id: merchant.merchant_id,
       businessName: merchant.business_name,
       legalName: merchant.legal_name,
@@ -92,13 +128,13 @@ export const handler = async (event) => {
       },
       body: JSON.stringify({
         error: "Internal server error",
-        message: error.message,
+        message: (error as Error).message,
       }),
     };
   }
 };
 
-function getStatusText(status) {
+function getStatusText(status: number): string {
   switch (status) {
     case 1:
       return "Active";

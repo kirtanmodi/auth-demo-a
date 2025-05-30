@@ -54,6 +54,17 @@ provider:
             - ec2:UnassignPrivateIpAddresses
           Resource: "*"
 
+build:
+  esbuild:
+    bundle: true
+    minify: false
+    sourcemap: true
+    target: node20
+    format: cjs
+    # Exclude AWS SDK which is included in Lambda runtime
+    external:
+      - '@aws-sdk/*'
+
 functions:
   # Token authorizer for API endpoints
   authorizerFunction:
@@ -65,6 +76,10 @@ functions:
         Action:
           - ssm:GetParameter
         Resource: "arn:aws:ssm:${self:provider.region}:*:parameter/auth-demo-a/${self:provider.stage}/*"
+      - Effect: Allow
+        Action:
+          - secretsmanager:GetSecretValue
+        Resource: ${cf:auth-demo-a-${self:provider.stage}.AuroraSecretArn}
 
   createMerchant:
     handler: src/functions/merchants/create.handler
@@ -119,7 +134,4 @@ custom:
     filename: ../.env
 
 package:
-  individually: true
-  patterns:
-    - 'src/**'
-    - 'node_modules/**' 
+  individually: true 

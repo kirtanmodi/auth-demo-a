@@ -1,7 +1,12 @@
 {
-  "type": "module",
   "dependencies": {
     "@aws-sdk/client-secrets-manager": "^3.821.0",
-    "pg": "^8.14.1"
+    "pg": "^8.14.1",
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "^0.3.20"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.149",
+    "@types/pg": "^8.11.10"
   }
 }
