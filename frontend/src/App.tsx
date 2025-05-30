@@ -18,16 +18,16 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [formData, setFormData] = useState({
-    businessName: "",
-    legalName: "",
-    email: "",
-    phone: "",
-    website: "",
+    businessName: "Sample Coffee Shop",
+    legalName: "Sample Coffee Shop LLC",
+    email: "sample@coffeeshop.com",
+    phone: "555-123-4567",
+    website: "https://samplecoffee.com",
   });
 
   // Get API URL from environment or default to deployed API
   const API_URL = import.meta.env.VITE_API_URL || "https://xccz9chneh.execute-api.us-east-1.amazonaws.com/dev";
-  const API_TOKEN = import.meta.env.VITE_API_TOKEN || "0e40d3d46b9ab39bf8bda5fddcc8c0e6d4b9dfff02a62e20a0170f3a8ba48941";
+  const API_TOKEN = import.meta.env.VITE_API_TOKEN || "2ad943cf309e953ae6595a6f3182e1233971322775ab33d9a0a1dfe1dbb0ae85";
 
   const apiCall = async (endpoint: string, options: RequestInit = {}) => {
     const response = await fetch(`${API_URL}${endpoint}`, {
@@ -65,10 +65,20 @@ function App() {
     setLoading(true);
     setError(null);
     try {
-      await apiCall("/merchants", {
+      // Public endpoint - no auth required
+      const response = await fetch(`${API_URL}/merchants`, {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(formData),
       });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`API Error: ${response.status} - ${errorText}`);
+      }
+
       setFormData({ businessName: "", legalName: "", email: "", phone: "", website: "" });
       setShowCreateForm(false);
       await fetchMerchants();
