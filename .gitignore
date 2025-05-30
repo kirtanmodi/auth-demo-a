@@ -70,4 +70,4 @@ dist/
 
 *.mdc
 CLAUDE.md
-task-rules.mdc
+task-rules.mdc.cursor/rules/task-rules.mdc
