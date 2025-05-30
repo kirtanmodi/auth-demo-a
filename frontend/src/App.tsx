@@ -26,10 +26,8 @@ function App() {
   });
 
   // Get API URL from environment or default to deployed API
-  const API_URL =
-    import.meta.env.VITE_API_URL ||
-    window.location.origin.replace(/https?:\/\/[^\/]+/, "https://your-api-id.execute-api.us-east-1.amazonaws.com/dev");
-  const API_TOKEN = import.meta.env.VITE_API_TOKEN || "demo-token-12345";
+  const API_URL = import.meta.env.VITE_API_URL || "https://xccz9chneh.execute-api.us-east-1.amazonaws.com/dev";
+  const API_TOKEN = import.meta.env.VITE_API_TOKEN || "0e40d3d46b9ab39bf8bda5fddcc8c0e6d4b9dfff02a62e20a0170f3a8ba48941";
 
   const apiCall = async (endpoint: string, options: RequestInit = {}) => {
     const response = await fetch(`${API_URL}${endpoint}`, {

@@ -91,6 +91,9 @@ export const handler = async (event) => {
  * Generates an IAM policy document for the API Gateway
  */
 function generatePolicy(principalId, effect, resource) {
+  // Extract the base resource ARN and allow all methods
+  const baseResource = resource.split("/").slice(0, -1).join("/") + "/*";
+
   return {
     principalId,
     policyDocument: {
@@ -99,7 +102,7 @@ function generatePolicy(principalId, effect, resource) {
         {
           Action: "execute-api:Invoke",
           Effect: effect,
-          Resource: resource,
+          Resource: baseResource,
         },
       ],
     },

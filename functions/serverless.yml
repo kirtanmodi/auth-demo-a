@@ -85,11 +85,7 @@ functions:
             methods:
               - POST
               - OPTIONS
-          authorizer:
-            name: authorizerFunction
-            type: token
-            identitySource: method.request.header.Authorization
-            resultTtlInSeconds: 300
+          # No authorizer - public endpoint
   
   listMerchants:
     handler: src/functions/merchants/list.handler
@@ -114,10 +110,10 @@ functions:
             name: authorizerFunction
             type: token
             identitySource: method.request.header.Authorization
-            resultTtlInSeconds: 300
+            resultTtlInSeconds: 0
 
 custom:
-  corsOrigins: "'https://${cf:auth-demo-a-frontend-dev.CloudFrontDomainName},http://localhost:3000,http://localhost:8080'"
+  corsOrigins: "https://d1eu8fm0ysafq4.cloudfront.net,http://localhost:3000,http://localhost:8080"
   exportEnv:
     overwrite: true
     filename: ../.env
@@ -125,5 +121,5 @@ custom:
 package:
   individually: true
   patterns:
-    - '!node_modules/**'
-    - 'src/**' 
+    - 'src/**'
+    - 'node_modules/**' 

@@ -18,28 +18,31 @@ export class Merchant {
   updated_at: Date;
 
   // Entity Information
-  @Column({ type: "smallint" })
+  @Column({ type: "smallint", default: 1 })
   entity_type: number;
 
   @Column({ type: "varchar", length: 255 })
   legal_name: string;
 
-  @Column({ type: "varchar", length: 255 })
+  @Column({ type: "varchar", length: 255, nullable: true })
+  business_name: string;
+
+  @Column({ type: "varchar", length: 255, nullable: true })
   address1: string;
 
   @Column({ type: "varchar", length: 255, nullable: true })
   address2: string;
 
-  @Column({ type: "varchar", length: 100 })
+  @Column({ type: "varchar", length: 100, nullable: true })
   city: string;
 
-  @Column({ type: "varchar", length: 50 })
+  @Column({ type: "varchar", length: 50, nullable: true })
   state: string;
 
-  @Column({ type: "varchar", length: 20 })
+  @Column({ type: "varchar", length: 20, nullable: true })
   zip: string;
 
-  @Column({ type: "varchar", length: 50 })
+  @Column({ type: "varchar", length: 50, default: "US" })
   country: string;
 
   @Column({ type: "varchar", length: 20 })
@@ -54,10 +57,10 @@ export class Merchant {
   @Column({ type: "varchar", length: 255, nullable: true })
   website: string;
 
-  @Column({ type: "varchar", length: 10 })
+  @Column({ type: "varchar", length: 10, default: "1.0" })
   tc_version: string;
 
-  @Column({ type: "varchar", length: 3 })
+  @Column({ type: "varchar", length: 3, default: "USD" })
   currency: string;
 
   // Merchant Business Information
@@ -67,10 +70,10 @@ export class Merchant {
   @Column({ type: "boolean", default: true })
   is_new: boolean;
 
-  @Column({ type: "varchar", length: 4 })
+  @Column({ type: "varchar", length: 4, default: "5999" })
   mcc: string;
 
-  @Column({ type: "smallint", default: 0 })
+  @Column({ type: "smallint", default: 1 })
   status: number;
 
   @Column({ type: "decimal", precision: 15, scale: 2, nullable: true })
