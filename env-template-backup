@@ -1,0 +1,12 @@
+# API Configuration
+REACT_APP_API_URL=http://localhost:3000/dev
+REACT_APP_API_KEY=YOUR_LOCAL_API_KEY  # For local development only
+
+# Environment settings
+REACT_APP_ENVIRONMENT=dev
+
+# CORS settings
+REACT_APP_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080
+
+# Note: Never commit your actual .env file to version control
+# Copy this file to .env and add your actual values. 
