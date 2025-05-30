@@ -17,8 +17,9 @@ This project uses a split stack approach with Serverless Framework to separate i
 ## Project Structure
 
 - `/infra/serverless.yml` - Infrastructure stack (VPC, RDS, etc.)
+- `/session-manager/serverless.yml` - Session Manager host for database access
 - `/functions/serverless.yml` - Lambda functions stack
-- `/bastion/serverless.yml` - Bastion host stack
+- `/frontend/serverless.yml` - S3 bucket and CloudFront distribution
 
 ## Deployment Order
 
@@ -31,17 +32,24 @@ cd infra
 serverless deploy
 ```
 
-#### 2. Deploy Bastion Host
+#### 2. Deploy Session Manager Host
 
 ```bash
-cd bastion
-serverless deploy
+cd session-manager
+serverless deploy --stage dev --aws-profile payrix
 ```
 
 #### 3. Deploy Functions
 
 ```bash
 cd functions
+serverless deploy
+```
+
+#### 4. Deploy Frontend
+
+```bash
+cd frontend
 serverless deploy
 ```
 
@@ -55,8 +63,9 @@ npm run deploy:all
 
 # Deploy individual stacks
 npm run deploy:infra
-npm run deploy:bastion
+npm run deploy:session-manager
 npm run deploy:functions
+npm run deploy:frontend
 
 # Deploy specific functions
 npm run function:create-merchant
@@ -65,16 +74,17 @@ npm run function:list-merchants
 # Generate .env files with environment variables
 npm run export-env:infra
 npm run export-env:functions
+npm run export-env:frontend
 
-# Connect to the database through the bastion host
-npm run db:tunnel
+# Connect to the database through the session manager host
+npm run db:connect
 
 # Remove stacks (reverse order)
 npm run remove:all
 
 # Remove individual stacks
 npm run remove:functions
-npm run remove:bastion
+npm run remove:session-manager
 npm run remove:infra
 ```
 
@@ -83,8 +93,9 @@ npm run remove:infra
 The stacks are designed to avoid circular dependencies:
 
 1. **Infrastructure Stack**: Base infrastructure with no dependencies on other stacks
-2. **Bastion Stack**: Depends on Infrastructure stack, adds security group rules to resources in the Infrastructure stack
+2. **Session Manager Stack**: Depends on Infrastructure stack, adds security group rules to resources in the Infrastructure stack
 3. **Functions Stack**: Depends on Infrastructure stack, references resources from both stacks
+4. **Frontend Stack**: Depends on Infrastructure stack, references resources from both stacks
 
 This design pattern allows for clean separation while maintaining proper dependency order.
 
@@ -94,7 +105,7 @@ This design pattern allows for clean separation while maintaining proper depende
 - **Faster Deployments**: Function-only deployments are much faster
 - **Better Organization**: Clearer separation of concerns
 - **Team Collaboration**: Different teams can manage different stacks
-- **Security Isolation**: Bastion host in separate stack for better security management
+- **Security Isolation**: Session Manager host in separate stack for better security management
 
 ## Individual Function Deployment
 
@@ -110,12 +121,13 @@ serverless deploy function -f createMerchant
 The stacks reference resources from each other using CloudFormation exports through the `${cf:stack-name.output-name}` syntax:
 
 - Infrastructure exports VPC, subnets, security groups, DB connection info
-- Bastion stack imports VPC and public subnet from infrastructure
+- Session Manager stack imports VPC and public subnet from infrastructure
 - Functions stack imports DB connection info and network configuration from infrastructure
+- Frontend stack imports S3 bucket and CloudFront distribution from infrastructure
 
 ## Connecting to the Database
 
-The Aurora PostgreSQL database is deployed in a private subnet and is not directly accessible from the internet. To connect to it, you need to tunnel through the bastion host.
+The Aurora PostgreSQL database is deployed in a private subnet and is not directly accessible from the internet. To connect to it, you need to tunnel through the session manager host.
 
 ### Using the Tunnel Script
 
@@ -131,7 +143,7 @@ npm run db:tunnel
 
 The script:
 
-1. Gets the bastion IP and database endpoint automatically from CloudFormation
+1. Gets the session manager IP and database endpoint automatically from CloudFormation
 2. Sets up a secure SSH tunnel
 3. Retrieves database credentials from Secrets Manager
 4. Sets up a `.pgpass` file for passwordless connections
@@ -155,10 +167,10 @@ psql -h localhost -p 5432 -U postgres -d authcleardb
 If you prefer to set up the tunnel manually:
 
 ```bash
-# Get the bastion IP
-BASTION_IP=$(aws cloudformation describe-stacks --stack-name auth-demo-a-bastion-dev \
-  --query "Stacks[0].Outputs[?OutputKey=='BastionPublicIP'].OutputValue" \
-  --output text)
+# Get the session manager IP
+SESSION_MANAGER_IP=$(aws cloudformation describe-stacks --stack-name auth-demo-a-session-manager-dev \
+--query "Stacks[0].Outputs[?OutputKey=='SessionManagerPublicIP'].OutputValue" \
+--output text --profile payrix)
 
 # Get the DB endpoint
 DB_ENDPOINT=$(aws cloudformation describe-stacks --stack-name auth-demo-a-dev \
@@ -166,7 +178,7 @@ DB_ENDPOINT=$(aws cloudformation describe-stacks --stack-name auth-demo-a-dev \
   --output text)
 
 # Set up the tunnel
-ssh -i aurora-bastion-key.pem -L 5432:${DB_ENDPOINT}:5432 ec2-user@${BASTION_IP}
+ssh -i aurora-session-manager-key.pem -L 5432:${DB_ENDPOINT}:5432 ec2-user@${SESSION_MANAGER_IP}
 ```
 
 # Serverless Framework Node HTTP API on AWS
@@ -182,8 +194,9 @@ This project uses `serverless-export-env` to automatically generate environment 
 ### How It Works
 
 1. **Infrastructure Stack** - Defines resources and exports parameters
-2. **Functions Stack** - References these parameters and uses them to set environment variables
-3. **serverless-export-env** - Generates a `.env` file containing all environment variables
+2. **Session Manager Stack** - Depends on Infrastructure stack, adds security group rules to resources in the Infrastructure stack
+3. **Functions Stack** - References these parameters and uses them to set environment variables
+4. **serverless-export-env** - Generates a `.env` file containing all environment variables
 
 ### Database Connection
 

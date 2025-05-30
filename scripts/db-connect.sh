@@ -31,7 +31,7 @@ echo_error() {
 # Get instance ID from CloudFormation exports
 get_instance_id() {
     aws cloudformation describe-stacks \
-        --stack-name "auth-demo-a-bastion-${STAGE}" \
+        --stack-name "auth-demo-a-session-manager-${STAGE}" \
         --query 'Stacks[0].Outputs[?OutputKey==`SessionManagerInstanceId`].OutputValue' \
         --output text \
         --profile "${PROFILE}" 2>/dev/null
@@ -158,7 +158,7 @@ main() {
     INSTANCE_ID=$(get_instance_id)
     if [[ -z "${INSTANCE_ID}" || "${INSTANCE_ID}" == "None" ]]; then
         echo_error "Could not find Session Manager instance for stage ${STAGE}"
-        echo_error "Make sure the bastion stack is deployed: npm run deploy:bastion"
+        echo_error "Make sure the session-manager stack is deployed: npm run deploy:session-manager"
         exit 1
     fi
     

@@ -1,4 +1,3 @@
-
 # Comprehensive Security Analysis: Auth Demo APIs
 
 ## Authentication & Authorization
@@ -21,7 +20,7 @@
 ### VPC Architecture
 - **Isolated Network**: All resources contained within dedicated Virtual Private Cloud (VPC)
 - **Network Segmentation**: Multiple subnet tiers with different security controls:
-  - Public subnet: Only contains bastion host with restricted access
+  - Public subnet: Only contains session manager host with restricted access
   - Private Lambda subnets: Contains Lambda functions with outbound internet access via NAT Gateway
   - Private database subnets: Contains Aurora PostgreSQL with no direct internet access
 
@@ -33,10 +32,10 @@
   
 - **Database Security Group**:
   - Allows inbound PostgreSQL connections (port 5432) only from Lambda functions
-  - Allows inbound connections from bastion host for administration
+  - Allows inbound connections from session manager host for administration
   - No outbound internet access
   
-- **Bastion Security Group**:
+- **Session Manager Security Group**:
   - Allows inbound SSH (port 22) only from specified IP addresses
   - Whitelist-based approach for administrator access
   - Provides controlled entry point for database administration
@@ -45,7 +44,7 @@
 - **API Gateway to Lambda**: TLS 1.2+ encrypted connections
 - **Lambda to Database**: Traffic never leaves AWS network and is encrypted
 - **Client to API**: HTTPS with TLS 1.2+ enforced by CloudFront and API Gateway
-- **Admin Access**: SSH tunneling through bastion host with key-based authentication
+- **Admin Access**: Session Manager tunneling through session manager host with key-based authentication
 
 ## Database Security
 
@@ -53,7 +52,7 @@
 - **Credential Management**: Database username/password stored in AWS Secrets Manager
 - **Dynamic Credential Retrieval**: Lambda functions retrieve credentials at runtime
 - **Network Isolation**: Database in private subnets with no public IP address
-- **Access Limitation**: Only accessible from Lambda functions and bastion host
+- **Access Limitation**: Only accessible from Lambda functions and session manager host
 
 ### Encryption
 - **Data at Rest**: Aurora storage encrypted with AWS KMS
@@ -95,12 +94,13 @@
 
 ## Administrative Security
 
-### Bastion Host Architecture
-- **Jump Server Design**: Administrators must first access bastion host
+### Session Manager Host Architecture
+- **Jump Server Design**: Administrators must first access session manager host
 - **Key-Based Authentication**: SSH access requires private key
 - **IP Restrictions**: SSH access limited to specific IP addresses
 - **Database Tunneling**: Secure port forwarding for database access
 - **Automatic Environment Setup**: Scripts handle secure credential retrieval and connection setup
+- **MFA for Administrative Access**: Add multi-factor authentication for session manager host access
 
 ### Secrets Rotation
 - **Parameter Store Values**: Structured for easy rotation
@@ -118,7 +118,6 @@
 ## Future Security Enhancements
 
 ### Potential Improvements
-- **MFA for Administrative Access**: Add multi-factor authentication for bastion host access
 - **Enhanced Logging**: Implement centralized security monitoring
 - **Automated Security Testing**: Integrate security scanning in CI/CD pipeline
 - **AWS WAF Integration**: Add web application firewall for advanced request filtering

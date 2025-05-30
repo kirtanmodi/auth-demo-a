@@ -42,8 +42,8 @@ Deploy each component in the correct order:
 # 1. Deploy base infrastructure (VPC, subnets, Aurora DB)
 npm run deploy:infra
 
-# 2. Deploy bastion host (if needed for DB access)
-npm run deploy:bastion
+# 2. Deploy session manager host (if needed for DB access)
+npm run deploy:session-manager
 
 # 3. Deploy API functions with authorizer
 npm run deploy:functions

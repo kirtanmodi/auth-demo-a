@@ -253,7 +253,7 @@ resources:
             FromPort: 5432
             ToPort: 5432
             SourceSecurityGroupId: !Ref LambdaSecurityGroup
-          # Bastion Host access will be added by bastion stack
+          # Session Manager Host access will be added by session-manager stack
         Tags:
           - Key: Name
             Value: ${self:service}-${self:provider.stage}-aurora-sg

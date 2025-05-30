@@ -1,4 +1,3 @@
-
 # Auth Demo Architecture Overview
 
 ## Project Summary
@@ -28,8 +27,7 @@ The Auth Demo project is a secure merchant management system built using AWS ser
                                                       ▲
                                                       │
                                              ┌────────────────┐
-                                             │ Bastion Host   │
-                                             │(Admin Access)  │
+                                             │ Session Manager │
                                              └────────────────┘
 ```
 
@@ -65,7 +63,7 @@ The Auth Demo project is a secure merchant management system built using AWS ser
 ### 3. Database System
 - **Aurora PostgreSQL**:
   - Deployed in private subnets
-  - Access limited to Lambda functions and bastion host
+  - Access limited to Lambda functions and session manager host
   - Credentials stored in AWS Secrets Manager
 
 ### 4. Security Implementation
@@ -103,13 +101,12 @@ The project uses a split-stack approach for cleaner organization and efficient d
    - CloudFront distribution
    - Bucket policies
    
-4. **Bastion Stack** (`/bastion`):
-   - EC2 bastion host
-   - Security group rules
+4. **Session Manager Stack** (`/session-manager`):
+   - EC2 session manager host
 
 ### Deployment Order
 1. Infrastructure Stack
-2. Bastion Stack
+2. Session Manager Stack
 3. Functions Stack
 4. Frontend Stack
 
@@ -146,7 +143,7 @@ The project uses a split-stack approach for cleaner organization and efficient d
 ## Database Access
 
 ### For Developers
-- SSH tunnel through bastion host
+- Session Manager tunnel through session manager host
 - Automated setup script (`db-tunnel.sh`)
 - Credentials retrieved from Secrets Manager
 
@@ -174,7 +171,7 @@ The project uses a split-stack approach for cleaner organization and efficient d
 ### Local Development
 - `serverless offline` for local API testing
 - Environment variables from `.env` file
-- Database access via SSH tunnel
+- Database access via session manager tunnel
 
 ### Deployment Process
 - Code changes committed to version control

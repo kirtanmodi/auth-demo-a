@@ -1,5 +1,5 @@
 org: kirtanmodi
-service: auth-demo-a-bastion
+service: auth-demo-a-session-manager
 
 plugins:
   - serverless-iam-roles-per-function
@@ -10,7 +10,7 @@ provider:
   stage: ${opt:stage, 'dev'}
   region: us-east-1
 
-# No functions in bastion stack
+# No functions in session-manager stack
 
 resources:
   Resources:
