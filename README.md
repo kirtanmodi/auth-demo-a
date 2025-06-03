@@ -168,7 +168,7 @@ If you prefer to set up the tunnel manually:
 
 ```bash
 # Get the session manager IP
-SESSION_MANAGER_IP=$(aws cloudformation describe-stacks --stack-name auth-demo-a-session-manager-dev \
+SESSION_MANAGER_IP=$(aws cloudformation describe-stacks --stack-name auth-clear-session-manager-dev \
 --query "Stacks[0].Outputs[?OutputKey=='SessionManagerPublicIP'].OutputValue" \
 --output text --profile payrix)
 

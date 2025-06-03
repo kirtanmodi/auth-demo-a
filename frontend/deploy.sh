@@ -11,7 +11,7 @@ STAGE=${1:-dev}
 PROFILE=${2:-payrix}
 
 # Configuration
-BUCKET_NAME="auth-demo-a-frontend-${STAGE}"
+BUCKET_NAME="auth-clear-frontend-${STAGE}"
 DISTRIBUTION_ID="E39DFVQ8M3AMTE"  # Update this if you have different distributions per stage
 
 echo "🚀 Starting frontend deployment..."

@@ -1,5 +1,5 @@
-org: kirtanmodi
-service: auth-demo-a-session-manager
+ 
+service: auth-clear-session-manager
 
 plugins:
   - serverless-iam-roles-per-function

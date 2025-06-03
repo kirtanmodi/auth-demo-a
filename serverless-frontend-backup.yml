@@ -1,5 +1,5 @@
-org: kirtanmodi
-service: auth-demo-a-frontend
+ 
+service: auth-clear-frontend
 
 provider:
   name: aws
@@ -72,7 +72,7 @@ resources:
           # Allow secure access to the API from CloudFront
           # Origins:
           #   - Id: APIOrigin
-          #     DomainName: ${cf:auth-demo-a-functions-${self:provider.stage}.ApiDomainName}
+          #     DomainName: ${cf:auth-clear-functions-${self:provider.stage}.ApiDomainName}
           #     CustomOriginConfig:
           #       OriginProtocolPolicy: https-only
           #       OriginSSLProtocols:

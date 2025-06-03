@@ -31,7 +31,7 @@ echo_error() {
 # Get instance ID from CloudFormation exports
 get_instance_id() {
     aws cloudformation describe-stacks \
-        --stack-name "auth-demo-a-session-manager-${STAGE}" \
+        --stack-name "auth-clear-session-manager-${STAGE}" \
         --query 'Stacks[0].Outputs[?OutputKey==`SessionManagerInstanceId`].OutputValue' \
         --output text \
         --profile "${PROFILE}" 2>/dev/null
