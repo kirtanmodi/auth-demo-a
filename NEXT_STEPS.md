@@ -134,7 +134,7 @@ npm run token:rotate -- --stage dev --profile payrix
 ### Authorization Errors
 - Check token format (must be "Bearer TOKEN")
 - Verify token value matches the one in SSM Parameter Store
-- Check SSM path is correct: `/auth-demo-a/${stage}/api-token`
+- Check SSM path is correct: `/auth-clear-infra/${stage}/api-token`
 
 ### IAM Permission Issues
 - Verify Lambda execution roles have proper permissions

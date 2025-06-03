@@ -15,11 +15,11 @@ provider:
   environment:
     STAGE: ${self:provider.stage}
     # Database connection info
-    DB_ENDPOINT: ${cf:auth-demo-a-${self:provider.stage}.AuroraClusterEndpoint}
-    DB_HOST: ${cf:auth-demo-a-${self:provider.stage}.AuroraClusterEndpoint}
-    DB_PORT: ${cf:auth-demo-a-${self:provider.stage}.AuroraClusterPort}
+    DB_ENDPOINT: ${cf:auth-clear-infra-${self:provider.stage}.AuroraClusterEndpoint}
+    DB_HOST: ${cf:auth-clear-infra-${self:provider.stage}.AuroraClusterEndpoint}
+    DB_PORT: ${cf:auth-clear-infra-${self:provider.stage}.AuroraClusterPort}
     DB_NAME: authcleardb
-    DB_SECRET_ARN: ${cf:auth-demo-a-${self:provider.stage}.AuroraSecretArn}
+    DB_SECRET_ARN: ${cf:auth-clear-infra-${self:provider.stage}.AuroraSecretArn}
     # These will be populated at runtime using the secret ARN
     DB_USERNAME: ${env:DB_USERNAME, 'postgres'}
     DB_PASSWORD: ${env:DB_PASSWORD, 'postgres'}
@@ -27,10 +27,10 @@ provider:
   # VPC configuration from main stack
   vpc:
     securityGroupIds:
-      - ${cf:auth-demo-a-${self:provider.stage}.LambdaSecurityGroupId}
+      - ${cf:auth-clear-infra-${self:provider.stage}.LambdaSecurityGroupId}
     subnetIds:
-      - ${cf:auth-demo-a-${self:provider.stage}.PrivateSubnetA}
-      - ${cf:auth-demo-a-${self:provider.stage}.PrivateSubnetB}
+      - ${cf:auth-clear-infra-${self:provider.stage}.PrivateSubnetA}
+      - ${cf:auth-clear-infra-${self:provider.stage}.PrivateSubnetB}
   
   # IAM permissions
   iam:
@@ -42,7 +42,7 @@ provider:
             - ssm:GetParameter
             - ssm:GetParameters
           Resource: 
-            - ${cf:auth-demo-a-${self:provider.stage}.AuroraSecretArn}
+            - ${cf:auth-clear-infra-${self:provider.stage}.AuroraSecretArn}
             - "arn:aws:ssm:${self:provider.region}:*:parameter/*"
         # VPC permissions
         - Effect: Allow
@@ -75,11 +75,11 @@ functions:
       - Effect: Allow
         Action:
           - ssm:GetParameter
-        Resource: "arn:aws:ssm:${self:provider.region}:*:parameter/auth-demo-a/${self:provider.stage}/*"
+        Resource: "arn:aws:ssm:${self:provider.region}:*:parameter/auth-clear-infra/${self:provider.stage}/*"
       - Effect: Allow
         Action:
           - secretsmanager:GetSecretValue
-        Resource: ${cf:auth-demo-a-${self:provider.stage}.AuroraSecretArn}
+        Resource: ${cf:auth-clear-infra-${self:provider.stage}.AuroraSecretArn}
 
   createMerchant:
     handler: src/functions/merchants/create.handler

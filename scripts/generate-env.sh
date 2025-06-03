@@ -5,7 +5,7 @@ STAGE=${1:-dev}
 AWS_PROFILE=${2:-payrix}
 
 # Stack name
-INFRA_STACK="auth-demo-a-${STAGE}"
+INFRA_STACK="auth-clear-infra-${STAGE}"
 
 echo "Generating .env file with database credentials..."
 echo "Stage: ${STAGE}"
@@ -46,7 +46,7 @@ DB_CREDENTIALS=$(aws secretsmanager get-secret-value \
 if [ -z "$DB_CREDENTIALS" ]; then
   echo "Trying direct secret name..."
   DB_CREDENTIALS=$(aws secretsmanager get-secret-value \
-    --secret-id "auth-demo-a/${STAGE}/aurora-credentials" \
+    --secret-id "auth-clear-infra/${STAGE}/aurora-credentials" \
     --query "SecretString" \
     --output text \
     --profile ${AWS_PROFILE})

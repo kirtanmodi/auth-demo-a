@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Frontend Deployment Script for auth-demo-a
+# Frontend Deployment Script for auth-clear-infra
 # Usage: ./deploy.sh [stage] [profile]
 # Example: ./deploy.sh dev payrix
 

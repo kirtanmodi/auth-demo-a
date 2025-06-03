@@ -173,7 +173,7 @@ SESSION_MANAGER_IP=$(aws cloudformation describe-stacks --stack-name auth-clear-
 --output text --profile payrix)
 
 # Get the DB endpoint
-DB_ENDPOINT=$(aws cloudformation describe-stacks --stack-name auth-demo-a-dev \
+DB_ENDPOINT=$(aws cloudformation describe-stacks --stack-name auth-clear-infra-dev \
   --query "Stacks[0].Outputs[?OutputKey=='AuroraClusterEndpoint'].OutputValue" \
   --output text)
 

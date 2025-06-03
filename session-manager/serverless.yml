@@ -18,12 +18,12 @@ resources:
     SSMVPCEndpoint:
       Type: AWS::EC2::VPCEndpoint
       Properties:
-        VpcId: ${cf:auth-demo-a-${self:provider.stage}.VpcId}
+        VpcId: ${cf:auth-clear-infra-${self:provider.stage}.VpcId}
         ServiceName: com.amazonaws.${self:provider.region}.ssm
         VpcEndpointType: Interface
         SubnetIds:
-          - ${cf:auth-demo-a-${self:provider.stage}.PrivateSubnetA}
-          - ${cf:auth-demo-a-${self:provider.stage}.PrivateSubnetB}
+          - ${cf:auth-clear-infra-${self:provider.stage}.PrivateSubnetA}
+          - ${cf:auth-clear-infra-${self:provider.stage}.PrivateSubnetB}
         SecurityGroupIds:
           - !Ref VPCEndpointSecurityGroup
         PolicyDocument:
@@ -38,24 +38,24 @@ resources:
     SSMMessagesVPCEndpoint:
       Type: AWS::EC2::VPCEndpoint
       Properties:
-        VpcId: ${cf:auth-demo-a-${self:provider.stage}.VpcId}
+        VpcId: ${cf:auth-clear-infra-${self:provider.stage}.VpcId}
         ServiceName: com.amazonaws.${self:provider.region}.ssmmessages
         VpcEndpointType: Interface
         SubnetIds:
-          - ${cf:auth-demo-a-${self:provider.stage}.PrivateSubnetA}
-          - ${cf:auth-demo-a-${self:provider.stage}.PrivateSubnetB}
+          - ${cf:auth-clear-infra-${self:provider.stage}.PrivateSubnetA}
+          - ${cf:auth-clear-infra-${self:provider.stage}.PrivateSubnetB}
         SecurityGroupIds:
           - !Ref VPCEndpointSecurityGroup
 
     EC2MessagesVPCEndpoint:
       Type: AWS::EC2::VPCEndpoint
       Properties:
-        VpcId: ${cf:auth-demo-a-${self:provider.stage}.VpcId}
+        VpcId: ${cf:auth-clear-infra-${self:provider.stage}.VpcId}
         ServiceName: com.amazonaws.${self:provider.region}.ec2messages
         VpcEndpointType: Interface
         SubnetIds:
-          - ${cf:auth-demo-a-${self:provider.stage}.PrivateSubnetA}
-          - ${cf:auth-demo-a-${self:provider.stage}.PrivateSubnetB}
+          - ${cf:auth-clear-infra-${self:provider.stage}.PrivateSubnetA}
+          - ${cf:auth-clear-infra-${self:provider.stage}.PrivateSubnetB}
         SecurityGroupIds:
           - !Ref VPCEndpointSecurityGroup
 
@@ -64,7 +64,7 @@ resources:
       Type: AWS::EC2::SecurityGroup
       Properties:
         GroupDescription: Security group for VPC endpoints
-        VpcId: ${cf:auth-demo-a-${self:provider.stage}.VpcId}
+        VpcId: ${cf:auth-clear-infra-${self:provider.stage}.VpcId}
         SecurityGroupIngress:
           - IpProtocol: tcp
             FromPort: 443
@@ -79,7 +79,7 @@ resources:
       Type: AWS::EC2::SecurityGroup
       Properties:
         GroupDescription: Security group for Session Manager database access instance
-        VpcId: ${cf:auth-demo-a-${self:provider.stage}.VpcId}
+        VpcId: ${cf:auth-clear-infra-${self:provider.stage}.VpcId}
         SecurityGroupEgress:
           - IpProtocol: tcp
             FromPort: 443
@@ -89,7 +89,7 @@ resources:
           - IpProtocol: tcp
             FromPort: 5432
             ToPort: 5432
-            DestinationSecurityGroupId: ${cf:auth-demo-a-${self:provider.stage}.AuroraSecurityGroupId}
+            DestinationSecurityGroupId: ${cf:auth-clear-infra-${self:provider.stage}.AuroraSecurityGroupId}
             Description: PostgreSQL to Aurora
         Tags:
           - Key: Name
@@ -124,7 +124,7 @@ resources:
       Type: AWS::EC2::Instance
       Properties:
         InstanceType: t3.micro
-        SubnetId: ${cf:auth-demo-a-${self:provider.stage}.PrivateSubnetA}
+        SubnetId: ${cf:auth-clear-infra-${self:provider.stage}.PrivateSubnetA}
         ImageId: ami-0c02fb55956c7d316  # Amazon Linux 2 AMI (us-east-1)
         IamInstanceProfile: !Ref SessionManagerInstanceProfile
         SecurityGroupIds:
@@ -145,7 +145,7 @@ resources:
       Type: AWS::EC2::SecurityGroupIngress
       Properties:
         Description: Allow PostgreSQL access from Session Manager instance
-        GroupId: ${cf:auth-demo-a-${self:provider.stage}.AuroraSecurityGroupId}
+        GroupId: ${cf:auth-clear-infra-${self:provider.stage}.AuroraSecurityGroupId}
         IpProtocol: tcp
         FromPort: 5432
         ToPort: 5432
@@ -168,7 +168,7 @@ resources:
         To connect to the database locally:
         1. Start the instance: aws ec2 start-instances --instance-ids ${SessionManagerInstance} --profile payrix
         2. Wait for running state: aws ec2 wait instance-running --instance-ids ${SessionManagerInstance} --profile payrix
-        3. Start port forwarding: aws ssm start-session --target ${SessionManagerInstance} --document-name AWS-StartPortForwardingSessionToRemoteHost --parameters host="${cf:auth-demo-a-${self:provider.stage}.AuroraClusterEndpoint}",portNumber="5432",localPortNumber="5432" --profile payrix
+        3. Start port forwarding: aws ssm start-session --target ${SessionManagerInstance} --document-name AWS-StartPortForwardingSessionToRemoteHost --parameters host="${cf:auth-clear-infra-${self:provider.stage}.AuroraClusterEndpoint}",portNumber="5432",localPortNumber="5432" --profile payrix
         4. Connect locally to: localhost:5432
         5. Stop instance when done: aws ec2 stop-instances --instance-ids ${SessionManagerInstance} --profile payrix
       Export:

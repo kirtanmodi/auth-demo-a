@@ -40,7 +40,7 @@ get_instance_id() {
 # Get Aurora endpoint from CloudFormation exports
 get_aurora_endpoint() {
     aws cloudformation describe-stacks \
-        --stack-name "auth-demo-a-${STAGE}" \
+        --stack-name "auth-clear-infra-${STAGE}" \
         --query 'Stacks[0].Outputs[?OutputKey==`AuroraClusterEndpoint`].OutputValue' \
         --output text \
         --profile "${PROFILE}" 2>/dev/null

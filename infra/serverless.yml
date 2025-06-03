@@ -1,5 +1,5 @@
  
-service: auth-demo-a
+service: auth-clear-infra
 
 plugins:
   - serverless-iam-roles-per-function

@@ -96,7 +96,7 @@ async function getParameter(paramName: string): Promise<string | null> {
 
 // Create a new token
 async function createToken(): Promise<void> {
-  const paramName = `/auth-demo-a/${stage}/api-token`;
+  const paramName = `/auth-clear-infra/${stage}/api-token`;
   const existingToken = await getParameter(paramName);
 
   if (existingToken) {
@@ -106,7 +106,7 @@ async function createToken(): Promise<void> {
   }
 
   const token = generateToken();
-  await putParameter(paramName, token, `API token for auth-demo-a ${stage} environment`);
+  await putParameter(paramName, token, `API token for auth-clear-infra ${stage} environment`);
 
   console.log(`New token created for ${stage} environment.`);
   console.log(`Token: ${token}`);
@@ -115,7 +115,7 @@ async function createToken(): Promise<void> {
 
 // Rotate an existing token
 async function rotateToken(): Promise<void> {
-  const paramName = `/auth-demo-a/${stage}/api-token`;
+  const paramName = `/auth-clear-infra/${stage}/api-token`;
   const existingToken = await getParameter(paramName);
 
   if (!existingToken) {
@@ -126,7 +126,7 @@ async function rotateToken(): Promise<void> {
 
   // Generate and store new token
   const newToken = generateToken();
-  await putParameter(paramName, newToken, `API token for auth-demo-a ${stage} environment (rotated)`);
+  await putParameter(paramName, newToken, `API token for auth-clear-infra ${stage} environment (rotated)`);
 
   console.log(`Token rotated for ${stage} environment.`);
   console.log(`Old token: ${existingToken.substring(0, 4)}...${existingToken.substring(existingToken.length - 4)}`);
