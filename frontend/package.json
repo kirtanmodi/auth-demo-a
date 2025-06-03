@@ -7,7 +7,12 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "npm run build && npm run upload && npm run invalidate",
+    "upload": "aws s3 sync dist/ s3://auth-demo-a-frontend-dev --profile payrix --delete",
+    "invalidate": "aws cloudfront create-invalidation --distribution-id E39DFVQ8M3AMTE --paths '/*' --profile payrix",
+    "deploy:dev": "npm run deploy",
+    "deploy:prod": "npm run build && aws s3 sync dist/ s3://auth-demo-a-frontend-prod --profile payrix --delete && aws cloudfront create-invalidation --distribution-id E39DFVQ8M3AMTE --paths '/*' --profile payrix"
   },
   "dependencies": {
     "react": "^19.1.0",
